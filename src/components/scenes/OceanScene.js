@@ -12,7 +12,7 @@ class OceanScene extends Scene {
         // Init state
         this.state = {
             gui: new Dat.GUI(), // Create GUI for scene
-            rotationSpeed: 1,
+            rotationSpeed: 0,
             windDirection: new THREE.Vector3(1, 0, 1),
             windSpeed: 1,
             updateList: [],
@@ -24,6 +24,7 @@ class OceanScene extends Scene {
         // Add meshes to scene
         const water = new Water(this);
         const boat = new Boat(this);
+        this.boat = boat;
         const lights = new BasicLights();
         this.add(water, boat, lights);
 
@@ -38,7 +39,7 @@ class OceanScene extends Scene {
 
     update(timeStamp) {
         const { rotationSpeed, updateList } = this.state;
-        this.rotation.y = (rotationSpeed * timeStamp) / 10000;
+        this.boat.rotation.y += rotationSpeed / 100;
         this.state.windDirection.set(1, 0, 1);
         // Call update for each object in the updateList
         for (const obj of updateList) {

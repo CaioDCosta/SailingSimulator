@@ -18,8 +18,9 @@ class Boat extends Group {
             this.add(gltf.scene);
         });
 
-        this.sail = new Sail(parent);
-        this.add(this.sail);
+        this.scene = parent;
+
+        this.sail = new Sail(this);
 
         // Add self to parent's update list
         parent.addToUpdateList(this);

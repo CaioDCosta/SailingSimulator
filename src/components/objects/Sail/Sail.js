@@ -7,7 +7,6 @@ class Particle {
         this.position = vec; // position
         this.previous = vec; // previous
         this.original = vec; // original
-
         this.netForce = new THREE.Vector3(); // net force acting on particle
         this.mass = mass; // mass of the particle
     }
@@ -46,6 +45,43 @@ class Particle {
         this.position = newPos;
         this.netForce.set(0, 0, 0);
     }
+
+    handleBoxCollision(bbox) {
+        const friction = .9;
+        let boundingBox = bbox.clone();
+        if (boundingBox.containsPoint(this.position)) {
+            let min = boundingBox.min;
+            let max = boundingBox.max;
+            let distToXYNeg = Math.abs(min.z - this.position.z);
+            let distToXYPos = Math.abs(max.z - this.position.z);
+            let distToYZNeg = Math.abs(min.x - this.position.x);
+            let distToYZPos = Math.abs(max.x - this.position.x);
+            let distToZXNeg = Math.abs(min.y - this.position.y);
+            let distToZXPos = Math.abs(max.y - this.position.y);
+            let minDist = Math.min(distToXYNeg, distToYZNeg, distToZXNeg, distToXYPos, distToYZPos, distToZXPos);
+            let posNoFriction;
+            if (minDist == distToXYNeg) {
+                posNoFriction = new THREE.Vector3(this.position.x, this.position.y, min.z);
+            } else if (minDist == distToXYPos) {
+                posNoFriction = new THREE.Vector3(this.position.x, this.position.y, max.z);
+            } else if (minDist == distToYZNeg) {
+                posNoFriction = new THREE.Vector3(min.x, this.position.y, this.position.z);
+            } else if (minDist == distToYZPos) {
+                posNoFriction = new THREE.Vector3(max.x, this.position.y, this.position.z);
+            } else if (minDist == distToZXNeg) {
+                posNoFriction = new THREE.Vector3(this.position.x, min.y, this.position.z);
+            } else {
+                posNoFriction = new THREE.Vector3(this.position.x, max.y, this.position.z);
+            }
+
+            if (boundingBox.containsPoint(this.previous)) {
+                this.position = posNoFriction;
+            } else {
+                let posFriction = this.previous.clone();
+                this.position = posFriction.multiplyScalar(friction).add(posNoFriction.multiplyScalar(1 - friction));
+            }
+        }
+    };
 }
 
 
@@ -67,15 +103,17 @@ class Constraint {
 
 class Sail extends Group {
 
-    constructor(scene) {
+    constructor(parent) {
         // Call parent Group() constructor
         super();
 
         this.prevTimeStamp = 0;
 
         // Resting Distances
-        let fabricLength = 6;
+        let fabricLength = 8;
         this.fabricLength = fabricLength;
+        let rs = .25;
+        this.riggingSize = rs;
         this.restDistance = 1; // for adjacent particles
         this.restDistanceB = 2; // multiplier for 2-away particles
         this.restDistanceS = Math.sqrt(2);
@@ -83,16 +121,17 @@ class Sail extends Group {
         this.gravity = 10;
 
         // Width and height
-        let w = this.fabricLength / this.restDistance;
-        let h = this.fabricLength / this.restDistance;
+        let w = Math.round(this.fabricLength / this.restDistance);
+        let h = Math.round(this.fabricLength / this.restDistance);
         this.w = w;
         this.h = h;
-        this.scene = scene;
+        this.parent = parent;
+        this.scene = parent.scene;
         let sailOffset = 4;
         this.getInitPosition = function (u, v, vec) {
             let x = u * fabricLength - fabricLength / 2;
             let y = v * fabricLength + sailOffset;
-            let z = .25;
+            let z = 2 * rs;
             vec.set(x, y, z);
         }
 
@@ -111,26 +150,37 @@ class Sail extends Group {
         this.sail = sail;
 
         let mast = {};
-        let mastHeight = this.fabricLength + sailOffset - 1;
-        mast.geometry = new THREE.BoxGeometry(.5, mastHeight, .5);
-        mast.geometry.translate(0, mastHeight / 2 + 1, 0);
+        let mastHeight = this.fabricLength + sailOffset + rs / 2;
+        mast.geometry = new THREE.BoxGeometry(rs, mastHeight, rs);
+        mast.geometry.translate(0, mastHeight / 2, 0);
+        mast.geometry.computeBoundingBox();
+        mast.bbox = mast.geometry.boundingBox;
         mast.material = new THREE.MeshStandardMaterial({ color: 0x603913 });
         mast.mesh = new THREE.Mesh(mast.geometry, mast.material);
         this.mast = mast;
 
-        let boom = {};
-        boom.geometry = new THREE.BoxGeometry(this.fabricLength, .5, .5);
-        boom.material = new THREE.MeshStandardMaterial({ color: 0x603913 });
-        boom.mesh1 = new THREE.Mesh(boom.geometry, boom.material);
-        boom.mesh1.translateY(sailOffset);
-        boom.mesh2 = new THREE.Mesh(boom.geometry, boom.material);
-        boom.mesh2.translateY(sailOffset + this.fabricLength);
-        this.boom = boom;
+        let boom1 = {};
+        boom1.geometry = new THREE.BoxGeometry(this.fabricLength, rs, rs);
+        boom1.geometry.translate(0, sailOffset, rs);
+        boom1.material = new THREE.MeshStandardMaterial({ color: 0x603913 });
+        boom1.mesh = new THREE.Mesh(boom1.geometry, boom1.material);
+        boom1.geometry.computeBoundingBox();
+        boom1.bbox = boom1.geometry.boundingBox;
+
+        let boom2 = {};
+        boom2.geometry = new THREE.BoxGeometry(this.fabricLength, rs, rs);
+        boom2.geometry.translate(0, sailOffset + this.fabricLength, rs);
+        boom2.material = new THREE.MeshStandardMaterial({ color: 0x603913 });
+        boom2.mesh = new THREE.Mesh(boom2.geometry, boom2.material);
+        boom2.geometry.computeBoundingBox();
+        boom2.bbox = boom2.geometry.boundingBox;
+        this.boom1 = boom1;
+        this.boom2 = boom2;
 
         this.add(this.sail.mesh);
         this.add(this.mast.mesh);
-        this.add(this.boom.mesh1);
-        this.add(this.boom.mesh2);
+        this.add(this.boom1.mesh);
+        this.add(this.boom2.mesh);
 
         this.translateZ(1);
 
@@ -178,7 +228,7 @@ class Sail extends Group {
         // Store the particles and constraints lists into the cloth object
         this.particles = particles;
         this.constraints = constraints;
-        this.scene.add(this);
+        parent.attach(this);
     }
 
     applyForces() {
@@ -187,7 +237,7 @@ class Sail extends Group {
     }
 
     applyWind() {
-        let windForce = this.scene.state.windDirection.normalize().multiplyScalar(this.scene.state.windSpeed);
+        let windForce = this.scene.state.windDirection.applyEuler(this.parent.rotation).normalize().multiplyScalar(this.scene.state.windSpeed);
 
         // Apply the wind force to the cloth particles
         let faces = this.sail.geometry.faces;
@@ -209,13 +259,24 @@ class Sail extends Group {
         }
     }
 
+    handleCollisions() {
+        let bbox = this.mast.bbox.clone().union(this.boom1.bbox);
+        bbox.min.z = Number.NEGATIVE_INFINITY;
+        for (let particle of this.particles) {
+            particle.handleBoxCollision(bbox);
+        }
+    }
+
     update(timeStamp) {
         let deltaT = (timeStamp - this.prevTimeStamp) / 1000;
         this.prevTimeStamp = timeStamp;
+
         this.applyForces();
         for (let particle of this.particles) {
             particle.integrate(deltaT);
         }
+
+        this.handleCollisions();
 
         for (let x = 0; x <= this.w; x++) {
             this.particles[this.index(x, 0)].lockToOriginal();
@@ -232,6 +293,9 @@ class Sail extends Group {
         for (let i = 0; i < this.particles.length; i++) {
             this.sail.geometry.vertices[i].copy(this.particles[i].position);
         }
+
+        this.handleCollisions();
+
         // recalculate cloth normals
         this.sail.geometry.computeFaceNormals();
         this.sail.geometry.computeVertexNormals();
