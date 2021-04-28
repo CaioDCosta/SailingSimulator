@@ -1,22 +1,20 @@
 {
-  "name": "lower-case-dashed-name-of-project",
-  "repository": "REPOSITORY-NAME-AS-IT-APPEARS-IN-GITHUB-URL",
+  "name": "sailing-simulator",
+  "repository": "SailingSimulator",
   "version": "0.1.0",
-  "title": "PROJECT TITLE HERE",
-  "description": "SHORT DESCRIPTION OF PROJECT HERE. ONE TO TWO SENTENCES MAX",
+  "title": "Sailing Simulator",
+  "description": "Physically based sailing simulator",
   "keywords": [
     "Princeton",
     "graphics",
     "three.js",
     "COS 426",
     "ivy league",
-    "keyword1",
-    "keyword2",
-    "...",
-    "this last entry CANNOT have a comma after it ->"
+    "sailing",
+    "simulator"
   ],
   "scripts": {
-    "start": "webpack-dev-server --mode development --output-public-path \"\"",
+    "start": "webpack-dev-server -w --watch-poll --mode development --output-public-path \"\"",
     "prebuild": "rimraf ./build && mkdirp ./build",
     "build": "npm run prebuild && webpack --mode production --progress --output-public-path \"\"",
     "format": "prettier --write '*.js' 'src/**/*.js'",
