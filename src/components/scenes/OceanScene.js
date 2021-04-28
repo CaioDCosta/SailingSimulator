@@ -3,7 +3,7 @@ import { Scene, Color } from 'three';
 import { Boat, Water } from 'objects';
 import { BasicLights } from 'lights';
 
-class SeedScene extends Scene {
+class OceanScene extends Scene {
     constructor() {
         // Call parent Scene() constructor
         super();
@@ -43,4 +43,4 @@ class SeedScene extends Scene {
     }
 }
 
-export default SeedScene;
+export default OceanScene;
