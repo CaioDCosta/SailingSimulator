@@ -1,5 +1,6 @@
 import * as Dat from 'dat.gui';
 import { Scene, Color } from 'three';
+import * as THREE from 'three';
 import { Boat, Water } from 'objects';
 import { BasicLights } from 'lights';
 
@@ -12,6 +13,8 @@ class OceanScene extends Scene {
         this.state = {
             gui: new Dat.GUI(), // Create GUI for scene
             rotationSpeed: 1,
+            windDirection: new THREE.Vector3(1, 0, 1),
+            windSpeed: 1,
             updateList: [],
         };
 
@@ -26,6 +29,7 @@ class OceanScene extends Scene {
 
         // Populate GUI
         this.state.gui.add(this.state, 'rotationSpeed', -5, 5);
+        this.state.gui.add(this.state, 'windSpeed', 0, 20);
     }
 
     addToUpdateList(object) {
@@ -35,7 +39,7 @@ class OceanScene extends Scene {
     update(timeStamp) {
         const { rotationSpeed, updateList } = this.state;
         this.rotation.y = (rotationSpeed * timeStamp) / 10000;
-
+        this.state.windDirection.set(1, 0, 1);
         // Call update for each object in the updateList
         for (const obj of updateList) {
             obj.update(timeStamp);
