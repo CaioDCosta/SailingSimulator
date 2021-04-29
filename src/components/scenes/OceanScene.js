@@ -13,7 +13,8 @@ class OceanScene extends Scene {
         this.state = {
             gui: new Dat.GUI(), // Create GUI for scene
             rotationSpeed: 0,
-            windDirection: new THREE.Vector3(1, 0, 1),
+            windHeading: 0, // Wind direction in radians
+            windDirection: new THREE.Vector3(),
             windSpeed: 1,
             updateList: [],
         };
@@ -31,6 +32,7 @@ class OceanScene extends Scene {
         // Populate GUI
         this.state.gui.add(this.state, 'rotationSpeed', -5, 5);
         this.state.gui.add(this.state, 'windSpeed', 0, 20);
+        this.state.gui.add(this.state, 'windHeading', 0, 2 * Math.PI);
     }
 
     addToUpdateList(object) {
@@ -40,7 +42,7 @@ class OceanScene extends Scene {
     update(timeStamp) {
         const { rotationSpeed, updateList } = this.state;
         this.boat.rotation.y += rotationSpeed / 100;
-        this.state.windDirection.set(1, 0, 1);
+        this.state.windDirection.set(Math.cos(this.state.windHeading), 0, Math.sin(this.state.windHeading));
         // Call update for each object in the updateList
         for (const obj of updateList) {
             obj.update(timeStamp);
