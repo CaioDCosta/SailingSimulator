@@ -1,7 +1,7 @@
 import * as Dat from 'dat.gui';
 import { Scene, Color } from 'three';
 import * as THREE from 'three';
-import { Boat, Water } from 'objects';
+import { Boat, Water, Land } from 'objects';
 import { BasicLights } from 'lights';
 
 class OceanScene extends Scene {
@@ -27,7 +27,8 @@ class OceanScene extends Scene {
         const boat = new Boat(this);
         this.boat = boat;
         const lights = new BasicLights();
-        this.add(water, boat, lights);
+        const land = new Land(this, 200, 200)
+        this.add(boat, lights, land);
 
         // Populate GUI
         this.state.gui.add(this.state, 'rotationSpeed', -5, 5);
