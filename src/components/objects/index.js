@@ -1,5 +1,3 @@
-export * from './Flower';
-export * from './Land';
-export * from './Boat';
-export * from './Water';
-export * from './Sail';
+export { default as Water } from './Water.js';
+export { default as Boat } from './Boat.js';
+export { default as Sail } from './Sail.js';

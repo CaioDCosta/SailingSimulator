@@ -1,6 +1,5 @@
 import { Group } from 'three';
 import * as THREE from 'three';
-import { SceneUtils } from 'three/examples/jsm/utils/SceneUtils.js'
 
 class Particle {
     constructor(vec, mass) {
