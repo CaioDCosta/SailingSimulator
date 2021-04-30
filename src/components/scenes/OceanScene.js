@@ -16,6 +16,8 @@ class OceanScene extends Scene {
             windHeading: 0, // Wind direction in radians
             windDirection: new THREE.Vector3(),
             windSpeed: 1,
+            boatChunk: undefined,
+            chunks: [],
             updateList: [],
         };
 
@@ -35,7 +37,8 @@ class OceanScene extends Scene {
                     depth: 20
                 },
                 island: {
-                    islandsPerChunk: 3,
+                    minIslandsPerChunk: 0,
+                    maxIslandsPerChunk: 3,
                     height: 40,
                     size: 500,
                     varX: 100,
@@ -62,8 +65,16 @@ class OceanScene extends Scene {
         const boat = new Boat(this);
         this.boat = boat;
         const lights = new BasicLights();
-        const chunk = new Chunk(this);
-        this.add(boat, lights, chunk);
+
+        for (let r = -1; r <= 1; r++) {
+            for (let c = -1; c <= 1; c++) {
+                this.state.chunks.push(new Chunk(this,
+                    r * (this.params.chunk.width - 1) * this.params.chunk.scale,
+                    c * (this.params.chunk.height - 1) * this.params.chunk.scale));
+            }
+        }
+        this.state.boatChunk = this.state.chunks[4];
+        this.add(boat, lights, ...this.state.chunks);
 
         // Populate GUI
         this.state.gui.add(this.state, 'rotationSpeed', -5, 5);
@@ -81,7 +92,8 @@ class OceanScene extends Scene {
         seafloor.add(this.params.chunk.seafloor, 'amp', 0, 50);
         seafloor.add(this.params.chunk.seafloor, 'depth', 0, 100);
         let island = this.state.gui.addFolder("Island");
-        island.add(this.params.chunk.island, 'islandsPerChunk', 0, 5, 1).onChange(x => chunk.land.generateIslands());
+        island.add(this.params.chunk.island, 'minIslandsPerChunk', 0, 5, 1).onChange(x => chunk.land.generateIslands());
+        island.add(this.params.chunk.island, 'maxIslandsPerChunk', 0, 5, 1).onChange(x => chunk.land.generateIslands());
         island.add(this.params.chunk.island, 'height', 0, 100).onChange(x => chunk.land.updateIslands('height'));
         island.add(this.params.chunk.island, 'size', 0, 1000).onChange(x => chunk.land.updateIslands('size'));
         island.add(this.params.chunk.island, 'varX', 0, 100).onChange(x => chunk.land.updateIslands('varX'));

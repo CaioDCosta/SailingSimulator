@@ -6,7 +6,7 @@ class Water extends THREE.Group {
         super();
 
         this.params = parent.params;
-
+        this.chunk = parent;
         this.scene = parent.scene;
         this.previousTimeStamp = 0;
         this.geometry = new THREE.PlaneBufferGeometry(this.params.width * this.params.scale,
@@ -15,10 +15,7 @@ class Water extends THREE.Group {
 
         this.mesh = new THREE.Mesh(this.geometry, this.material);
         this.add(this.mesh);
-    }
-
-    uvToXZ(u, v) {
-        return [(u - this.params.width / 2) * this.params.scale, (v - this.params.height / 2) * this.params.scale];
+        this.update(0);
     }
 
     wave(u, v, vec, deltaT) {
@@ -26,7 +23,7 @@ class Water extends THREE.Group {
 
         let t = this.previousTimeStamp;
         let g = this.params.wave.g;
-        let [x_0, z_0] = this.uvToXZ(u, v);
+        let [x_0, z_0] = this.chunk.uvToLocalXZ(u, v);
 
         let V = this.scene.state.windSpeed / 2;
         if (V < Number.EPSILON) {
