@@ -3,6 +3,10 @@ import { Scene, Color } from 'three';
 import * as THREE from 'three';
 import { Boat, Chunk } from 'objects';
 import { BasicLights } from 'lights';
+import { Plane } from 'three';
+import { PlaneGeometry } from 'three';
+import { MeshBasicMaterial } from 'three';
+import { Mesh } from 'three';
 
 class OceanScene extends Scene {
     constructor() {
@@ -61,10 +65,38 @@ class OceanScene extends Scene {
         // Set background to a nice color
         this.background = new Color(0x7ec0ee);
 
+
+
         // Add meshes to scene    
         const boat = new Boat(this);
         this.boat = boat;
         const lights = new BasicLights();
+        let chunks_hw = 3 / 2 * (this.params.chunk.width - 1);
+        let chunks_hh = 3 / 2 * (this.params.chunk.height - 1);
+        let horizon_width = 1000 + chunks_hh;
+        let horizon_height = 1000 - chunks_hw;
+        const plane_geometry = new PlaneGeometry(horizon_width, horizon_height);
+        const plane_material = new MeshBasicMaterial({ color: 0x0010ff, side: THREE.DoubleSide });
+        let planeZP = new Mesh(plane_geometry, plane_material);
+        let planeZN = new Mesh(plane_geometry, plane_material);
+        planeZP.translateX(chunks_hw - horizon_width / 2);
+        planeZN.translateX(horizon_width / 2 - chunks_hw);
+        planeZP.translateZ(horizon_height / 2 + chunks_hh);
+        planeZN.translateZ(-horizon_height / 2 - chunks_hh);
+        planeZP.rotation.x += Math.PI / 2;
+        planeZN.rotation.x += Math.PI / 2;
+        this.add(planeZP, planeZN);
+        let planeXP = new Mesh(plane_geometry, plane_material);
+        let planeXN = new Mesh(plane_geometry, plane_material);
+        planeXP.translateZ(chunks_hw - horizon_width / 2);
+        planeXN.translateZ(horizon_width / 2 - chunks_hw);
+        planeXP.translateX(horizon_height / 2 + chunks_hh);
+        planeXN.translateX(-horizon_height / 2 - chunks_hh);
+        planeXP.rotation.x += Math.PI / 2;
+        planeXN.rotation.x += Math.PI / 2;
+        planeXP.rotation.z += Math.PI / 2;
+        planeXN.rotation.z += Math.PI / 2;
+        this.add(planeZP, planeZN, planeXP, planeXN);
 
         for (let r = -1; r <= 1; r++) {
             let chunks = [];
