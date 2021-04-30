@@ -8,7 +8,7 @@ class Land extends Group {
         super();
 
         this.params = parent.params;
-        this.islands = this.generateIslands();
+        this.islands = this.generateIslands(true);
         this.chunk = parent;
         this.geometry = new THREE.PlaneBufferGeometry(this.params.width * this.params.scale,
             this.params.height * this.params.scale, this.params.width - 1, this.params.height - 1);
@@ -53,11 +53,13 @@ class Land extends Group {
         this.geometry.computeVertexNormals();
     }
 
-    generateIslands() {
+    generateIslands(newNum = false) {
         let is = this.params.island;
         let islands = [];
-        let islandsPerChunk = Math.floor(Math.random() * (is.maxIslandsPerChunk - is.minIslandsPerChunk)) + is.minIslandsPerChunk;
-        for (let j = 0; j < islandsPerChunk; j++) {
+        if (newNum) {
+            this.numIslands = Math.floor(Math.random() * (is.maxIslandsPerChunk - is.minIslandsPerChunk)) + is.minIslandsPerChunk;
+        }   
+        for (let j = 0; j < this.numIslands; j++) {
             islands.push({
                 x: (Math.random() - 0.5) * this.params.width / 2,
                 z: (Math.random() - 0.5) * this.params.height / 2,
@@ -71,9 +73,14 @@ class Land extends Group {
 
     updateIslands(attribute) {
         if (attribute !== undefined) {
-            islands = this.generateIslands();
-            for (let i = 0; i < this.islands.length; i++) {
-                this.islands[i][attribute] = islands[i][attribute];
+            if (attribute == 'num') {
+                this.islands = this.generateIslands(true);
+            }
+            else {
+                let islands = this.generateIslands();
+                for (let i = 0; i < this.islands.length; i++) {
+                    this.islands[i][attribute] = islands[i][attribute];
+                }
             }
         }
         this.updateGeometry();

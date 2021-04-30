@@ -67,14 +67,16 @@ class OceanScene extends Scene {
         const lights = new BasicLights();
 
         for (let r = -1; r <= 1; r++) {
+            let chunks = [];
             for (let c = -1; c <= 1; c++) {
-                this.state.chunks.push(new Chunk(this,
+                chunks.push(new Chunk(this,
                     r * (this.params.chunk.width - 1) * this.params.chunk.scale,
                     c * (this.params.chunk.height - 1) * this.params.chunk.scale));
             }
+            this.state.chunks.push(chunks);
         }
-        this.state.boatChunk = this.state.chunks[4];
-        this.add(boat, lights, ...this.state.chunks);
+        this.state.boatChunk = this.state.chunks[1][1];
+        this.add(boat, lights, ...this.state.chunks.flat());
 
         // Populate GUI
         this.state.gui.add(this.state, 'rotationSpeed', -5, 5);
@@ -91,19 +93,23 @@ class OceanScene extends Scene {
         seafloor.add(this.params.chunk.seafloor, 'init_freq', 0, .1);
         seafloor.add(this.params.chunk.seafloor, 'amp', 0, 50);
         seafloor.add(this.params.chunk.seafloor, 'depth', 0, 100);
+
+        let updateIslands = (arg) => {
+            this.state.chunks.flat().map(x => x.land.updateIslands(arg));
+        }
         let island = this.state.gui.addFolder("Island");
-        island.add(this.params.chunk.island, 'minIslandsPerChunk', 0, 5, 1).onChange(x => chunk.land.generateIslands());
-        island.add(this.params.chunk.island, 'maxIslandsPerChunk', 0, 5, 1).onChange(x => chunk.land.generateIslands());
-        island.add(this.params.chunk.island, 'height', 0, 100).onChange(x => chunk.land.updateIslands('height'));
-        island.add(this.params.chunk.island, 'size', 0, 1000).onChange(x => chunk.land.updateIslands('size'));
-        island.add(this.params.chunk.island, 'varX', 0, 100).onChange(x => chunk.land.updateIslands('varX'));
-        island.add(this.params.chunk.island, 'varY', 0, 100).onChange(x => chunk.land.updateIslands('varY'));
-        island.add(this.params.chunk.island, 'oct', 0, 10, 1).onChange(x => chunk.land.updateIslands());
-        island.add(this.params.chunk.island, 'gain', 0, 5).onChange(x => chunk.land.updateIslands());
-        island.add(this.params.chunk.island, 'lac', 0, 5).onChange(x => chunk.land.updateIslands());
-        island.add(this.params.chunk.island, 'init_amp', 0, 1).onChange(x => chunk.land.updateIslands());
-        island.add(this.params.chunk.island, 'init_freq', 0, 1).onChange(x => chunk.land.updateIslands());
-        island.add(this.params.chunk.island, 'amp', 0, 20).onChange(x => chunk.land.updateIslands());
+        island.add(this.params.chunk.island, 'minIslandsPerChunk', 0, 5, 1).onChange(() => updateIslands('num'));
+        island.add(this.params.chunk.island, 'maxIslandsPerChunk', 0, 5, 1).onChange(() => updateIslands('num'));
+        island.add(this.params.chunk.island, 'height', 0, 100).onChange(() => updateIslands('peak'));
+        island.add(this.params.chunk.island, 'size', 0, 1000).onChange(() => updateIslands('size'));
+        island.add(this.params.chunk.island, 'varX', 0, 100).onChange(() => updateIslands('varX'));
+        island.add(this.params.chunk.island, 'varY', 0, 100).onChange(() => updateIslands('varY'));
+        island.add(this.params.chunk.island, 'oct', 0, 10, 1).onChange(() => updateIslands());
+        island.add(this.params.chunk.island, 'gain', 0, 5).onChange(() => updateIslands());
+        island.add(this.params.chunk.island, 'lac', 0, 5).onChange(() => updateIslands());
+        island.add(this.params.chunk.island, 'init_amp', 0, 1).onChange(() => updateIslands());
+        island.add(this.params.chunk.island, 'init_freq', 0, 1).onChange(() => updateIslands());
+        island.add(this.params.chunk.island, 'amp', 0, 20).onChange(x => updateIslands());
         island.add(this.params.chunk.island, 'thresholdMin', 0, 100);
         island.add(this.params.chunk.island, 'thresholdMax', 0, 100);
 
