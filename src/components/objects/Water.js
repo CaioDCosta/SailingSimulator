@@ -44,7 +44,7 @@ class Water extends THREE.Group {
     }
     update(timeStamp) {
         let index = (u, v) => u * this.width + v;
-        timeStamp /= 10000;
+        timeStamp /= 1000;
         let deltaT = timeStamp - this.previousTimeStamp;
         this.previousTimeStamp = timeStamp;
         let vec = new THREE.Vector3();

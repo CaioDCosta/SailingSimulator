@@ -32,8 +32,28 @@ class Perlin {
         ];
     }
 
+    fBM(x, y, z, init_freq = .1, oct = 2, lac = 2, gain = .5, init_amp = .5) {
+        let amp = init_amp;
+        let freq = init_freq;
+        let noise = 0;
+        for (let i = 0; i < oct; i++) {
+            noise += amp * this.noise(x, y, z, freq);
+            freq *= lac;
+            amp *= gain;
+        }
+        return noise;
+    }
+
+    leakyfBM(x, y, z, init_freq = .1, oct = 2, lac = 2, gain = .5, init_amp = .5, leakiness = .1) {
+        let f = this.fBM(x, y, z, init_freq, oct, lac, gain, init_amp);
+        return f > 0 ? f : f * leakiness;
+    }
+
     // Adapted from Perlin's implementation at https://cs.nyu.edu/~perlin/noise/   
-    noise(x, y, z) {
+    noise(x, y, z, frequency = 1) {
+        x *= frequency;
+        y *= frequency;
+        z *= frequency;
         let lerp = this.lerp;
         let grad = this.grad;
         let fade = this.fade;
@@ -67,7 +87,7 @@ class Perlin {
     fade(t) { return t * t * t * (t * (t * 6 - 15) + 10); }
     lerp(t, a, b) { return a + t * (b - a); }
     grad(hash, x, y, z) {
-        let h = hash & 15;                      // CONVERT LO 4 BITS OF HASH CODE
+        let h = hash & 7;                      // CONVERT LO 4 BITS OF HASH CODE
         let u = h < 8 ? x : y;                 // INTO 12 GRADIENT DIRECTIONS.
         let v = h < 4 ? y : h == 12 || h == 14 ? x : z;
         return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
