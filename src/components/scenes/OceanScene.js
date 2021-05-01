@@ -71,39 +71,67 @@ class OceanScene extends Scene {
         const boat = new Boat(this);
         this.boat = boat;
         const lights = new BasicLights();
-        let chunks_hw = 3 / 2 * (this.params.chunk.width - 1);
-        let chunks_hh = 3 / 2 * (this.params.chunk.height - 1);
-        let horizon_width = 1000 + chunks_hh;
-        let horizon_height = 1000 - chunks_hw;
-        const plane_geometry = new PlaneGeometry(horizon_width, horizon_height);
-        const plane_material = new MeshBasicMaterial({ color: 0x0010ff, side: THREE.DoubleSide });
-        let planeZP = new Mesh(plane_geometry, plane_material);
-        let planeZN = new Mesh(plane_geometry, plane_material);
-        planeZP.translateX(chunks_hw - horizon_width / 2);
-        planeZN.translateX(horizon_width / 2 - chunks_hw);
-        planeZP.translateZ(horizon_height / 2 + chunks_hh);
-        planeZN.translateZ(-horizon_height / 2 - chunks_hh);
-        planeZP.rotation.x += Math.PI / 2;
-        planeZN.rotation.x += Math.PI / 2;
-        this.add(planeZP, planeZN);
-        let planeXP = new Mesh(plane_geometry, plane_material);
-        let planeXN = new Mesh(plane_geometry, plane_material);
-        planeXP.translateZ(chunks_hw - horizon_width / 2);
-        planeXN.translateZ(horizon_width / 2 - chunks_hw);
-        planeXP.translateX(horizon_height / 2 + chunks_hh);
-        planeXN.translateX(-horizon_height / 2 - chunks_hh);
-        planeXP.rotation.x += Math.PI / 2;
-        planeXN.rotation.x += Math.PI / 2;
-        planeXP.rotation.z += Math.PI / 2;
-        planeXN.rotation.z += Math.PI / 2;
-        this.add(planeZP, planeZN, planeXP, planeXN);
+        let targetSize = 500;
+
+        let chunkHalfWidth = this.params.chunk.width / 2;
+        let chunkHalfHeight = this.params.chunk.height / 2
+        let cornerWidth = targetSize - chunkHalfWidth;
+        let cornerHeight = targetSize - chunkHalfHeight;
+        const cornerGeometry = new PlaneGeometry(cornerWidth, cornerHeight);
+        const boundaryMaterial = new MeshBasicMaterial({ color: 0x0010ff, side: THREE.DoubleSide });
+        let corner1 = new Mesh(cornerGeometry, boundaryMaterial);
+        let corner2 = new Mesh(cornerGeometry, boundaryMaterial);
+        let corner3 = new Mesh(cornerGeometry, boundaryMaterial);
+        let corner4 = new Mesh(cornerGeometry, boundaryMaterial);
+
+
+        corner1.translateX(cornerWidth / 2 + chunkHalfWidth - 1);
+        corner1.translateZ(cornerHeight / 2 + chunkHalfHeight - 1);
+        corner2.translateX(-(cornerWidth / 2 + chunkHalfWidth - 1));
+        corner2.translateZ(cornerHeight / 2 + chunkHalfHeight - 1);
+        corner3.translateX(-(cornerWidth / 2 + chunkHalfWidth - 1));
+        corner3.translateZ(-(cornerHeight / 2 + chunkHalfHeight - 1));
+        corner4.translateX(cornerWidth / 2 + chunkHalfWidth - 1);
+        corner4.translateZ(-(cornerHeight / 2 + chunkHalfHeight - 1));
+
+        corner1.rotation.x += Math.PI / 2;
+        corner2.rotation.x += Math.PI / 2;
+        corner3.rotation.x += Math.PI / 2;
+        corner4.rotation.x += Math.PI / 2;
+
+        this.add(corner1, corner2, corner3, corner4);
+
+        let chunkThreeHalvesHeight = 3 * chunkHalfHeight;
+        let chunkThreeHalvesWidth = 3 * chunkHalfWidth;
+
+        let edgeHeight = targetSize - chunkThreeHalvesHeight;
+        let edgeWidth = targetSize - chunkThreeHalvesWidth;
+        const edgeGeometryHeight = new PlaneGeometry(this.params.chunk.width, edgeHeight);
+        let edgez1 = new Mesh(edgeGeometryHeight, boundaryMaterial);
+        let edgez2 = new Mesh(edgeGeometryHeight, boundaryMaterial);
+        edgez1.translateZ(edgeHeight / 2 + chunkThreeHalvesHeight - 2);
+        edgez2.translateZ(-(edgeHeight / 2 + chunkThreeHalvesHeight - 2));
+        edgez1.rotation.x += Math.PI / 2;
+        edgez2.rotation.x += Math.PI / 2;
+
+        const edgeGeometryWidth = new PlaneGeometry(edgeWidth, this.params.chunk.height);
+        let edgex1 = new Mesh(edgeGeometryWidth, boundaryMaterial);
+        let edgex2 = new Mesh(edgeGeometryWidth, boundaryMaterial);
+        edgex1.translateX(edgeWidth / 2 + chunkThreeHalvesWidth - 2);
+        edgex2.translateX(-(edgeWidth / 2 + chunkThreeHalvesWidth - 2));
+        edgex1.rotation.x += Math.PI / 2;
+        edgex2.rotation.x += Math.PI / 2;
+        edgex1.rotation.y += Math.PI;
+        edgex2.rotation.y += Math.PI;
+        this.add(edgez1, edgez2, edgex1, edgex2);
 
         for (let r = -1; r <= 1; r++) {
             let chunks = [];
             for (let c = -1; c <= 1; c++) {
                 chunks.push(new Chunk(this,
                     r * (this.params.chunk.width - 1) * this.params.chunk.scale,
-                    c * (this.params.chunk.height - 1) * this.params.chunk.scale));
+                    c * (this.params.chunk.height - 1) * this.params.chunk.scale,
+                    r * c == 0));
             }
             this.state.chunks.push(chunks);
         }
