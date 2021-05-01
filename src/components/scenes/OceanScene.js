@@ -1,14 +1,9 @@
 import * as Dat from 'dat.gui';
-import { Scene, Color } from 'three';
 import * as THREE from 'three';
 import { Boat, Chunk } from 'objects';
 import { BasicLights } from 'lights';
-import { Plane } from 'three';
-import { PlaneGeometry } from 'three';
-import { MeshBasicMaterial } from 'three';
-import { Mesh } from 'three';
 
-class OceanScene extends Scene {
+class OceanScene extends THREE.Scene {
     constructor() {
         // Call parent Scene() constructor
         super();
@@ -38,12 +33,12 @@ class OceanScene extends Scene {
                     init_amp: .5,
                     init_freq: .02,
                     amp: 20,
-                    depth: 20
+                    depth: 30
                 },
                 island: {
                     minIslandsPerChunk: 0,
                     maxIslandsPerChunk: 3,
-                    height: 40,
+                    height: 50,
                     size: 500,
                     varX: 100,
                     varY: 100,
@@ -62,8 +57,11 @@ class OceanScene extends Scene {
             },
         }
 
+
+
         // Set background to a nice color
-        this.background = new Color(0x7ec0ee);
+        let sceneColor = 0x7ec0ee;
+        this.background = new THREE.Color(sceneColor);
 
 
 
@@ -77,22 +75,22 @@ class OceanScene extends Scene {
         let chunkHalfHeight = this.params.chunk.height / 2
         let cornerWidth = targetSize - chunkHalfWidth;
         let cornerHeight = targetSize - chunkHalfHeight;
-        const cornerGeometry = new PlaneGeometry(cornerWidth, cornerHeight);
-        const boundaryMaterial = new MeshBasicMaterial({ color: 0x0010ff, side: THREE.DoubleSide });
-        let corner1 = new Mesh(cornerGeometry, boundaryMaterial);
-        let corner2 = new Mesh(cornerGeometry, boundaryMaterial);
-        let corner3 = new Mesh(cornerGeometry, boundaryMaterial);
-        let corner4 = new Mesh(cornerGeometry, boundaryMaterial);
+        const cornerGeometry = new THREE.PlaneGeometry(cornerWidth, cornerHeight);
+        const boundaryMaterial = new THREE.MeshStandardMaterial({ color: 0x0010ff, side: THREE.DoubleSide });
+        let corner1 = new THREE.Mesh(cornerGeometry, boundaryMaterial);
+        let corner2 = new THREE.Mesh(cornerGeometry, boundaryMaterial);
+        let corner3 = new THREE.Mesh(cornerGeometry, boundaryMaterial);
+        let corner4 = new THREE.Mesh(cornerGeometry, boundaryMaterial);
 
 
-        corner1.translateX(cornerWidth / 2 + chunkHalfWidth - 1);
-        corner1.translateZ(cornerHeight / 2 + chunkHalfHeight - 1);
-        corner2.translateX(-(cornerWidth / 2 + chunkHalfWidth - 1));
-        corner2.translateZ(cornerHeight / 2 + chunkHalfHeight - 1);
-        corner3.translateX(-(cornerWidth / 2 + chunkHalfWidth - 1));
-        corner3.translateZ(-(cornerHeight / 2 + chunkHalfHeight - 1));
-        corner4.translateX(cornerWidth / 2 + chunkHalfWidth - 1);
-        corner4.translateZ(-(cornerHeight / 2 + chunkHalfHeight - 1));
+        corner1.translateX(cornerWidth / 2 + chunkHalfWidth - 0.5);
+        corner1.translateZ(cornerHeight / 2 + chunkHalfHeight - 0.5);
+        corner2.translateX(-(cornerWidth / 2 + chunkHalfWidth - 0.5));
+        corner2.translateZ(cornerHeight / 2 + chunkHalfHeight - 0.5);
+        corner3.translateX(-(cornerWidth / 2 + chunkHalfWidth - 0.5));
+        corner3.translateZ(-(cornerHeight / 2 + chunkHalfHeight - 0.5));
+        corner4.translateX(cornerWidth / 2 + chunkHalfWidth - 0.5);
+        corner4.translateZ(-(cornerHeight / 2 + chunkHalfHeight - 0.5));
 
         corner1.rotation.x += Math.PI / 2;
         corner2.rotation.x += Math.PI / 2;
@@ -106,17 +104,17 @@ class OceanScene extends Scene {
 
         let edgeHeight = targetSize - chunkThreeHalvesHeight;
         let edgeWidth = targetSize - chunkThreeHalvesWidth;
-        const edgeGeometryHeight = new PlaneGeometry(this.params.chunk.width, edgeHeight);
-        let edgez1 = new Mesh(edgeGeometryHeight, boundaryMaterial);
-        let edgez2 = new Mesh(edgeGeometryHeight, boundaryMaterial);
+        const edgeGeometryHeight = new THREE.PlaneGeometry(this.params.chunk.width, edgeHeight);
+        let edgez1 = new THREE.Mesh(edgeGeometryHeight, boundaryMaterial);
+        let edgez2 = new THREE.Mesh(edgeGeometryHeight, boundaryMaterial);
         edgez1.translateZ(edgeHeight / 2 + chunkThreeHalvesHeight - 2);
         edgez2.translateZ(-(edgeHeight / 2 + chunkThreeHalvesHeight - 2));
         edgez1.rotation.x += Math.PI / 2;
         edgez2.rotation.x += Math.PI / 2;
 
-        const edgeGeometryWidth = new PlaneGeometry(edgeWidth, this.params.chunk.height);
-        let edgex1 = new Mesh(edgeGeometryWidth, boundaryMaterial);
-        let edgex2 = new Mesh(edgeGeometryWidth, boundaryMaterial);
+        const edgeGeometryWidth = new THREE.PlaneGeometry(edgeWidth, this.params.chunk.height);
+        let edgex1 = new THREE.Mesh(edgeGeometryWidth, boundaryMaterial);
+        let edgex2 = new THREE.Mesh(edgeGeometryWidth, boundaryMaterial);
         edgex1.translateX(edgeWidth / 2 + chunkThreeHalvesWidth - 2);
         edgex2.translateX(-(edgeWidth / 2 + chunkThreeHalvesWidth - 2));
         edgex1.rotation.x += Math.PI / 2;
@@ -124,6 +122,9 @@ class OceanScene extends Scene {
         edgex1.rotation.y += Math.PI;
         edgex2.rotation.y += Math.PI;
         this.add(edgez1, edgez2, edgex1, edgex2);
+
+        let average = (this.params.chunk.height + this.params.chunk.width) / 2;
+        this.fog = new THREE.Fog(sceneColor, average / 10, average);
 
         for (let r = -1; r <= 1; r++) {
             let chunks = [];

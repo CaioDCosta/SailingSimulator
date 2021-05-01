@@ -109,11 +109,11 @@ class Sail extends Group {
         this.prevTimeStamp = 0;
 
         // Resting Distances
-        let fabricLength = 8;
+        let fabricLength = 2;
         this.fabricLength = fabricLength;
-        let rs = .25;
+        let rs = .1;
         this.riggingSize = rs;
-        this.restDistance = 1; // for adjacent particles
+        this.restDistance = .5; // for adjacent particles
         this.restDistanceB = 2; // multiplier for 2-away particles
         this.restDistanceS = Math.sqrt(2);
         this.particleMass = 0.1;
@@ -126,7 +126,7 @@ class Sail extends Group {
         this.h = h;
         this.parent = parent;
         this.scene = parent.scene;
-        let sailOffset = 4;
+        let sailOffset = this.fabricLength / 2;
         this.getInitPosition = function (u, v, vec) {
             let x = u * fabricLength - fabricLength / 2;
             let y = v * fabricLength + sailOffset;
@@ -181,7 +181,7 @@ class Sail extends Group {
         this.add(this.boom1.mesh);
         this.add(this.boom2.mesh);
 
-        this.translateZ(1);
+        this.translateZ(.25);
 
         // Empty initial lists
         let particles = [];
