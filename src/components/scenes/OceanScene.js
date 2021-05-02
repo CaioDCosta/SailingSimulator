@@ -141,6 +141,7 @@ class OceanScene extends THREE.Scene {
             obj.update(deltaT);
         }
         this.chunks.translate(-this.boat.velocity.x, -this.boat.velocity.z);
+        this.state.time += deltaT;
     }
 }
 

@@ -73,7 +73,7 @@ class Boundary extends Group {
         else if (this.position.z + z < -height / 2) {
             this.position.z += height;
         }
-        new TWEEN.Tween(this.position).to({ x: this.position.x + x, z: this.position.z + z }, this.scene.params.interval * 1000).start();
+        new TWEEN.Tween(this.position).to({ x: this.position.x + x, z: this.position.z + z }, this.scene.params.interval * 1000).start(this.scene.state.time);
     }
 }
 

@@ -38,10 +38,10 @@ class Chunk extends Group {
             this.position.z += 3 * this.params.height;
             this.z0 += 3 * this.params.height;
         }
-        new TWEEN.Tween(this.position).to({ x: this.position.x + x, z: this.position.z + z }, this.scene.params.interval * 1000).start();
+        new TWEEN.Tween(this.position).to({ x: this.position.x + x, z: this.position.z + z }, this.scene.params.interval * 1000).start(this.scene.state.time);
         let inCenterRow = Math.abs(this.position.x) < this.params.width / 2;
         let inCenterCol = Math.abs(this.position.z) < this.params.height / 2
-        this.animate = inCenterRow && inCenterCol;
+        this.water.animate = inCenterRow && inCenterCol;
         this.water.visible = inCenterRow || inCenterCol;
     }
 
