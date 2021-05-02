@@ -1,10 +1,11 @@
 import * as Dat from 'dat.gui';
 import * as THREE from 'three';
-import { Boat, Chunk } from 'objects';
+import { Boat, Chunks } from 'objects';
 import { BasicLights } from 'lights';
+import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
 
 class OceanScene extends THREE.Scene {
-    constructor(camera) {
+    constructor(interval) {
         // Call parent Scene() constructor
         super();
 
@@ -22,7 +23,7 @@ class OceanScene extends THREE.Scene {
         };
 
         this.params = {
-            timestep: 18 / 1000,
+            interval: interval,
             boat: {
                 mass: 1,
                 forceMultiplier: 1
@@ -64,8 +65,6 @@ class OceanScene extends THREE.Scene {
             },
         }
 
-
-
         // Set background to a nice color
         let sceneColor = 0x7ec0ee;
         this.background = new THREE.Color(sceneColor);
@@ -74,77 +73,12 @@ class OceanScene extends THREE.Scene {
         const boat = new Boat(this);
         this.boat = boat;
         const lights = new BasicLights();
-        let targetSize = 500;
-
-        this.camera = camera;
-
-        let chunkHalfWidth = this.params.chunk.width / 2;
-        let chunkHalfHeight = this.params.chunk.height / 2
-        let cornerWidth = targetSize - chunkHalfWidth;
-        let cornerHeight = targetSize - chunkHalfHeight;
-        const cornerGeometry = new THREE.PlaneGeometry(cornerWidth, cornerHeight);
-        const boundaryMaterial = new THREE.MeshStandardMaterial({ color: 0x0010ff, side: THREE.DoubleSide });
-        let corner1 = new THREE.Mesh(cornerGeometry, boundaryMaterial);
-        let corner2 = new THREE.Mesh(cornerGeometry, boundaryMaterial);
-        let corner3 = new THREE.Mesh(cornerGeometry, boundaryMaterial);
-        let corner4 = new THREE.Mesh(cornerGeometry, boundaryMaterial);
-
-
-        corner1.translateX(cornerWidth / 2 + chunkHalfWidth - 0.5);
-        corner1.translateZ(cornerHeight / 2 + chunkHalfHeight - 0.5);
-        corner2.translateX(-(cornerWidth / 2 + chunkHalfWidth - 0.5));
-        corner2.translateZ(cornerHeight / 2 + chunkHalfHeight - 0.5);
-        corner3.translateX(-(cornerWidth / 2 + chunkHalfWidth - 0.5));
-        corner3.translateZ(-(cornerHeight / 2 + chunkHalfHeight - 0.5));
-        corner4.translateX(cornerWidth / 2 + chunkHalfWidth - 0.5);
-        corner4.translateZ(-(cornerHeight / 2 + chunkHalfHeight - 0.5));
-
-        corner1.rotation.x += Math.PI / 2;
-        corner2.rotation.x += Math.PI / 2;
-        corner3.rotation.x += Math.PI / 2;
-        corner4.rotation.x += Math.PI / 2;
-
-        this.add(corner1, corner2, corner3, corner4);
-
-        let chunkThreeHalvesHeight = 3 * chunkHalfHeight;
-        let chunkThreeHalvesWidth = 3 * chunkHalfWidth;
-
-        let edgeHeight = targetSize - chunkThreeHalvesHeight;
-        let edgeWidth = targetSize - chunkThreeHalvesWidth;
-        const edgeGeometryHeight = new THREE.PlaneGeometry(this.params.chunk.width, edgeHeight);
-        let edgez1 = new THREE.Mesh(edgeGeometryHeight, boundaryMaterial);
-        let edgez2 = new THREE.Mesh(edgeGeometryHeight, boundaryMaterial);
-        edgez1.translateZ(edgeHeight / 2 + chunkThreeHalvesHeight - 2);
-        edgez2.translateZ(-(edgeHeight / 2 + chunkThreeHalvesHeight - 2));
-        edgez1.rotation.x += Math.PI / 2;
-        edgez2.rotation.x += Math.PI / 2;
-
-        const edgeGeometryWidth = new THREE.PlaneGeometry(edgeWidth, this.params.chunk.height);
-        let edgex1 = new THREE.Mesh(edgeGeometryWidth, boundaryMaterial);
-        let edgex2 = new THREE.Mesh(edgeGeometryWidth, boundaryMaterial);
-        edgex1.translateX(edgeWidth / 2 + chunkThreeHalvesWidth - 2);
-        edgex2.translateX(-(edgeWidth / 2 + chunkThreeHalvesWidth - 2));
-        edgex1.rotation.x += Math.PI / 2;
-        edgex2.rotation.x += Math.PI / 2;
-        edgex1.rotation.y += Math.PI;
-        edgex2.rotation.y += Math.PI;
-        this.add(edgez1, edgez2, edgex1, edgex2);
+        this.chunks = new Chunks(this);
 
         let average = (this.params.chunk.height + this.params.chunk.width) / 2;
-        // this.fog = new THREE.Fog(sceneColor, average / 10, average);
-
-        for (let r = -1; r <= 1; r++) {
-            let chunks = [];
-            for (let c = -1; c <= 1; c++) {
-                chunks.push(new Chunk(this,
-                    r * (this.params.chunk.width - 1) * this.params.chunk.scale,
-                    c * (this.params.chunk.height - 1) * this.params.chunk.scale,
-                    r * c == 0));
-            }
-            this.state.chunks.push(chunks);
-        }
-        this.state.boatChunk = this.state.chunks[1][1];
-        this.add(boat, lights, ...this.state.chunks.flat());
+        this.fog = new THREE.Fog(sceneColor, average / 10, average);
+        this.add(lights, this.chunks);
+        this.attach(boat);
 
         // Populate GUI
         this.state.gui.add(this.state, 'rotationSpeed', -5, 5);
@@ -152,8 +86,6 @@ class OceanScene extends THREE.Scene {
         this.state.gui.add(this.state, 'windHeading', 0, 2 * Math.PI);
         this.state.gui.add(this.params.boat, 'mass', 0.01, 1);
         this.state.gui.add(this.params.boat, 'forceMultiplier', 1, 100);
-        this.state.gui.add(this.params, 'timestep', 0.01, .5);
-
 
         let wave = this.state.gui.addFolder("Wave");
         wave.add(this.params.chunk.wave, "g", 0, 40);
@@ -169,7 +101,7 @@ class OceanScene extends THREE.Scene {
         seafloor.add(this.params.chunk.seafloor, 'depth', 0, 100);
 
         let updateIslands = (arg) => {
-            this.state.chunks.flat().map(x => x.land.updateIslands(arg));
+            this.chunks.update(arg);
         }
         let island = this.state.gui.addFolder("Island");
         island.add(this.params.chunk.island, 'minIslandsPerChunk', 0, 5, 1).onChange(() => updateIslands('num'));
@@ -194,16 +126,19 @@ class OceanScene extends THREE.Scene {
         this.state.updateList.push(object);
     }
 
-    update(timeStamp) {
-        this.camera.target = this.boat.position;
+    update(deltaT) {
         const { rotationSpeed, updateList } = this.state;
         this.boat.rotation.y += rotationSpeed / 100;
         this.state.windDirection.set(Math.cos(this.state.windHeading), 0, Math.sin(this.state.windHeading));
         // Call update for each object in the updateList
         for (const obj of updateList) {
-            obj.update(this.params.timestep);
+            obj.update(deltaT);
         }
-        ;
+        let newPos = new THREE.Vector3().subVectors(this.chunks.position, this.boat.deltaPos);
+        const tween = new TWEEN.Tween(this.chunks.position)
+            .to({ x: newPos.x, y: newPos.y, z: newPos.z }, this.params.interval * 1000);
+        tween.start();
+        this.boat.deltaPos.set(0, 0, 0);
     }
 }
 

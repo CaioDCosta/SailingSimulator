@@ -58,7 +58,7 @@ class Land extends Group {
         let islands = [];
         if (newNum) {
             this.numIslands = Math.floor(Math.random() * (is.maxIslandsPerChunk - is.minIslandsPerChunk)) + is.minIslandsPerChunk;
-        }   
+        }
         for (let j = 0; j < this.numIslands; j++) {
             islands.push({
                 x: (Math.random() - 0.5) * this.params.width / 2,
@@ -79,7 +79,12 @@ class Land extends Group {
             else {
                 let islands = this.generateIslands();
                 for (let i = 0; i < this.islands.length; i++) {
-                    this.islands[i][attribute] = islands[i][attribute];
+                    if (attribute == 'size') {
+                        this.islands[i].varX = islands[i].varX;
+                        this.islands[i].varY = islands[i].varY;
+                    } else {
+                        this.islands[i][attribute] = islands[i][attribute];
+                    }
                 }
             }
         }

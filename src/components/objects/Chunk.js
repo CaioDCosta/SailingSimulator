@@ -2,13 +2,13 @@ import { Water, Land } from "objects";
 import { Group } from "three";
 
 class Chunk extends Group {
-    constructor(scene, x0 = 0, z0 = 0, hasWater = true) {
+    constructor(scene, x0 = 0, z0 = 0, hasWater = true, animate) {
         super();
 
         this.params = scene.params.chunk;
         this.scene = scene;
         this.setPos(x0, z0);
-
+        this.animate = animate;
         if (hasWater) {
             this.water = new Water(this);
             this.add(this.water);
@@ -35,7 +35,7 @@ class Chunk extends Group {
     }
 
     update(deltaT) {
-        if (this === this.scene.state.boatChunk && this.params.wave.enabled) this.water.update(deltaT);
+        if (this.animate && this.params.wave.enabled) this.water.update(deltaT);
         this.land.position.y = -this.params.seafloor.depth;
     }
 }

@@ -126,7 +126,7 @@ class Sail extends Group {
         this.w = w;
         this.h = h;
         this.parent = parent;
-        this.scene = parent.scene;
+        this.scene = this.parent.scene;
         let sailOffset = this.fabricLength / 2;
         this.getInitPosition = function (u, v, vec) {
             let x = u * fabricLength - fabricLength / 2;

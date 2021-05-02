@@ -6,9 +6,10 @@
  * handles window resizes.
  *
  */
-import { WebGLRenderer, PerspectiveCamera, Vector3 } from 'three';
+import { WebGLRenderer, PerspectiveCamera, Vector3, Clock } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { OceanScene } from 'scenes';
+import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
 
 // Initialize core ThreeJS components
 const camera = new PerspectiveCamera();
@@ -26,7 +27,11 @@ document.body.style.margin = 0; // Removes margin around page
 document.body.style.overflow = 'hidden'; // Fix scrolling
 document.body.appendChild(canvas);
 
-const scene = new OceanScene(camera);
+const clock = new Clock();
+let delta = 0;
+const interval = 1 / 30; // Target 30 FPS
+
+const scene = new OceanScene(interval);
 
 // Set up controls
 const controls = new OrbitControls(camera, canvas);
@@ -38,10 +43,15 @@ controls.update();
 
 // Render loop
 const onAnimationFrameHandler = (timeStamp) => {
-    controls.update();
-    renderer.render(scene, camera);
-    scene.update && scene.update(timeStamp);
     window.requestAnimationFrame(onAnimationFrameHandler);
+    delta += clock.getDelta();
+    if (delta > interval) {
+        controls.update();
+        renderer.render(scene, camera);
+        TWEEN.update(timeStamp);
+        scene.update && scene.update(delta);
+        delta %= interval;
+    }
 };
 window.requestAnimationFrame(onAnimationFrameHandler);
 
