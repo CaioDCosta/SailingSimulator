@@ -4,12 +4,13 @@ import { Boat, Chunk } from 'objects';
 import { BasicLights } from 'lights';
 
 class OceanScene extends THREE.Scene {
-    constructor() {
+    constructor(camera) {
         // Call parent Scene() constructor
         super();
 
         // Init state
         this.state = {
+            time: 0,
             gui: new Dat.GUI(), // Create GUI for scene
             rotationSpeed: 0,
             windHeading: 0, // Wind direction in radians
@@ -21,8 +22,14 @@ class OceanScene extends THREE.Scene {
         };
 
         this.params = {
+            timestep: 18 / 1000,
+            boat: {
+                mass: 1,
+                forceMultiplier: 1
+            },
             chunk: {
                 wave: {
+                    enabled: true,
                     g: 9.8,
                     lambda: 2
                 },
@@ -63,13 +70,13 @@ class OceanScene extends THREE.Scene {
         let sceneColor = 0x7ec0ee;
         this.background = new THREE.Color(sceneColor);
 
-
-
         // Add meshes to scene    
         const boat = new Boat(this);
         this.boat = boat;
         const lights = new BasicLights();
         let targetSize = 500;
+
+        this.camera = camera;
 
         let chunkHalfWidth = this.params.chunk.width / 2;
         let chunkHalfHeight = this.params.chunk.height / 2
@@ -124,7 +131,7 @@ class OceanScene extends THREE.Scene {
         this.add(edgez1, edgez2, edgex1, edgex2);
 
         let average = (this.params.chunk.height + this.params.chunk.width) / 2;
-        this.fog = new THREE.Fog(sceneColor, average / 10, average);
+        // this.fog = new THREE.Fog(sceneColor, average / 10, average);
 
         for (let r = -1; r <= 1; r++) {
             let chunks = [];
@@ -143,9 +150,15 @@ class OceanScene extends THREE.Scene {
         this.state.gui.add(this.state, 'rotationSpeed', -5, 5);
         this.state.gui.add(this.state, 'windSpeed', 0, 20);
         this.state.gui.add(this.state, 'windHeading', 0, 2 * Math.PI);
+        this.state.gui.add(this.params.boat, 'mass', 0.01, 1);
+        this.state.gui.add(this.params.boat, 'forceMultiplier', 1, 100);
+        this.state.gui.add(this.params, 'timestep', 0.01, .5);
+
+
         let wave = this.state.gui.addFolder("Wave");
         wave.add(this.params.chunk.wave, "g", 0, 40);
         wave.add(this.params.chunk.wave, "lambda", 0, 5);
+        wave.add(this.params.chunk.wave, "enabled");
         let seafloor = this.state.gui.addFolder("Seafloor");
         seafloor.add(this.params.chunk.seafloor, 'oct', 0, 10, 1);
         seafloor.add(this.params.chunk.seafloor, 'gain', 0, 5);
@@ -182,13 +195,15 @@ class OceanScene extends THREE.Scene {
     }
 
     update(timeStamp) {
+        this.camera.target = this.boat.position;
         const { rotationSpeed, updateList } = this.state;
         this.boat.rotation.y += rotationSpeed / 100;
         this.state.windDirection.set(Math.cos(this.state.windHeading), 0, Math.sin(this.state.windHeading));
         // Call update for each object in the updateList
         for (const obj of updateList) {
-            obj.update(timeStamp);
+            obj.update(this.params.timestep);
         }
+        ;
     }
 }
 

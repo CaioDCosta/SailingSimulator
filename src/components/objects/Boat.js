@@ -1,4 +1,4 @@
-import { Group } from 'three';
+import { Group, Vector3 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { Sail } from 'objects';
 
@@ -11,6 +11,8 @@ class Boat extends Group {
 
         // Load object
         const loader = new GLTFLoader();
+        this.params = parent.params.boat;
+        this.previous = new Vector3();
 
         this.name = 'boat';
         loader.load(path.resolve('/src/components/objects/res/boat.glb'), (gltf) => {
@@ -25,8 +27,15 @@ class Boat extends Group {
         parent.addToUpdateList(this);
     }
 
-    update(timeStamp) {
-        this.sail.update(timeStamp);
+    update(deltaT) {
+        let force = this.sail.update(deltaT);
+        force.multiplyScalar(this.params.forceMultiplier);
+        force.y = 0;
+        let deltaPos = new Vector3().subVectors(this.position, this.previous)
+            .multiplyScalar(0.5)
+            .add(force.multiplyScalar(deltaT * deltaT / this.params.mass));
+        this.previous.copy(this.position);
+        this.position.add(deltaPos);
     }
 }
 

@@ -7,6 +7,7 @@ class Particle {
         this.previous = vec; // previous
         this.original = vec; // original
         this.netForce = new THREE.Vector3(); // net force acting on particle
+        this.oldNetForce = new THREE.Vector3();
         this.mass = mass; // mass of the particle
     }
 
@@ -42,7 +43,9 @@ class Particle {
         newPos.add(this.position);
         this.previous = this.position;
         this.position = newPos;
+        this.oldNetForce.copy(this.netForce);
         this.netForce.set(0, 0, 0);
+        return this.oldNetForce;
     }
 
     handleBoxCollision(bbox) {
@@ -105,8 +108,6 @@ class Sail extends Group {
     constructor(parent) {
         // Call parent Group() constructor
         super();
-
-        this.prevTimeStamp = 0;
 
         // Resting Distances
         let fabricLength = 2;
@@ -266,13 +267,12 @@ class Sail extends Group {
         }
     }
 
-    update(timeStamp) {
-        let deltaT = (timeStamp - this.prevTimeStamp) / 1000;
-        this.prevTimeStamp = timeStamp;
+    update(deltaT) {
 
         this.applyForces();
+        let force = new THREE.Vector3();
         for (let particle of this.particles) {
-            particle.integrate(deltaT);
+            force.add(particle.integrate(deltaT));
         }
 
         this.handleCollisions();
@@ -300,6 +300,7 @@ class Sail extends Group {
         this.sail.geometry.computeVertexNormals();
         this.sail.geometry.normalsNeedUpdate = true;
         this.sail.geometry.verticesNeedUpdate = true;
+        return force;
     }
 
     enforceConstraints() {

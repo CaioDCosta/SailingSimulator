@@ -6,6 +6,7 @@ class Water extends THREE.Group {
         super();
 
         this.params = parent.params;
+        this.time = 0;
         this.chunk = parent;
         this.scene = parent.scene;
         this.previousTimeStamp = 0;
@@ -21,7 +22,6 @@ class Water extends THREE.Group {
     wave(u, v, vec, deltaT) {
         if (!vec) return;
 
-        let t = this.previousTimeStamp;
         let g = this.params.wave.g;
         let [x_0, z_0] = this.chunk.uvToLocalXZ(u, v);
 
@@ -37,19 +37,16 @@ class Water extends THREE.Group {
         let T = 2 * Math.PI / omega;
         let L = g * T * T / (2 * Math.PI);
         let kappa = (2 * Math.PI) / L;
-        let phi = kappa * x_0 - omega * t - this.params.wave.lambda * vec.y * deltaT;
+        let phi = kappa * x_0 - omega * this.time - this.params.wave.lambda * vec.y * deltaT;
 
         vec.set(x_0 + r * Math.sin(phi), -r * Math.cos(phi), z_0);
     }
 
-    update(timeStamp) {
-
+    update(deltaT) {
         let w = this.params.width, h = this.params.height;
         let index = (u, v) => u * w + v;
 
-        timeStamp /= 1000;
-        let deltaT = timeStamp - this.previousTimeStamp;
-        this.previousTimeStamp = timeStamp;
+        this.time += deltaT;
 
         let vec = new THREE.Vector3();
         for (let u = 0; u < w; u += 1) {

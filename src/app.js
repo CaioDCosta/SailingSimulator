@@ -11,7 +11,6 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { OceanScene } from 'scenes';
 
 // Initialize core ThreeJS components
-const scene = new OceanScene();
 const camera = new PerspectiveCamera();
 const renderer = new WebGLRenderer({ antialias: true });
 
@@ -26,6 +25,8 @@ canvas.style.display = 'block'; // Removes padding below canvas
 document.body.style.margin = 0; // Removes margin around page
 document.body.style.overflow = 'hidden'; // Fix scrolling
 document.body.appendChild(canvas);
+
+const scene = new OceanScene(camera);
 
 // Set up controls
 const controls = new OrbitControls(camera, canvas);

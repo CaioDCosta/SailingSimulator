@@ -34,8 +34,8 @@ class Chunk extends Group {
         return [(u - (this.params.width - 1) / 2) * this.params.scale, (v - (this.params.height - 1) / 2) * this.params.scale];
     }
 
-    update(timeStamp) {
-        if (this === this.scene.state.boatChunk) this.water.update(timeStamp);
+    update(deltaT) {
+        if (this === this.scene.state.boatChunk && this.params.wave.enabled) this.water.update(deltaT);
         this.land.position.y = -this.params.seafloor.depth;
     }
 }
