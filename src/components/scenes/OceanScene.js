@@ -2,7 +2,6 @@ import * as Dat from 'dat.gui';
 import * as THREE from 'three';
 import { Boat, Chunks } from 'objects';
 import { BasicLights } from 'lights';
-import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
 
 class OceanScene extends THREE.Scene {
     constructor(interval) {
@@ -24,9 +23,12 @@ class OceanScene extends THREE.Scene {
 
         this.params = {
             interval: interval,
+            fog: true,
             boat: {
                 mass: 1,
-                forceMultiplier: 1
+                forceMultiplier: 1,
+                velocityMultiplier: 2,
+                damping: 0.5
             },
             chunk: {
                 wave: {
@@ -59,8 +61,8 @@ class OceanScene extends THREE.Scene {
                     thresholdMin: 10,
                     thresholdMax: 40,
                 },
-                height: 201,
-                width: 201,
+                height: 200,
+                width: 200,
                 scale: 1
             },
         }
@@ -75,8 +77,9 @@ class OceanScene extends THREE.Scene {
         const lights = new BasicLights();
         this.chunks = new Chunks(this);
 
-        let average = (this.params.chunk.height + this.params.chunk.width) / 2;
-        this.fog = new THREE.Fog(sceneColor, average / 10, average);
+        let near = (this.params.chunk.height + this.params.chunk.width) / 20;
+        let far = 1000;
+        this.fog = new THREE.Fog(sceneColor, near, far);
         this.add(lights, this.chunks);
         this.attach(boat);
 
@@ -86,6 +89,9 @@ class OceanScene extends THREE.Scene {
         this.state.gui.add(this.state, 'windHeading', 0, 2 * Math.PI);
         this.state.gui.add(this.params.boat, 'mass', 0.01, 1);
         this.state.gui.add(this.params.boat, 'forceMultiplier', 1, 100);
+        this.state.gui.add(this.params.boat, 'velocityMultiplier', 0, 3);
+        this.state.gui.add(this.params.boat, 'damping', 0, 1);
+        this.state.gui.add(this.params, 'fog').onChange((showFog) => this.fog.near = showFog ? near : far);
 
         let wave = this.state.gui.addFolder("Wave");
         wave.add(this.params.chunk.wave, "g", 0, 40);
@@ -134,11 +140,7 @@ class OceanScene extends THREE.Scene {
         for (const obj of updateList) {
             obj.update(deltaT);
         }
-        let newPos = new THREE.Vector3().subVectors(this.chunks.position, this.boat.deltaPos);
-        const tween = new TWEEN.Tween(this.chunks.position)
-            .to({ x: newPos.x, y: newPos.y, z: newPos.z }, this.params.interval * 1000);
-        tween.start();
-        this.boat.deltaPos.set(0, 0, 0);
+        this.chunks.translate(-this.boat.velocity.x, -this.boat.velocity.z);
     }
 }
 

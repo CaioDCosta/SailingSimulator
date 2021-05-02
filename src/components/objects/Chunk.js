@@ -1,41 +1,60 @@
 import { Water, Land } from "objects";
 import { Group } from "three";
+import { TWEEN } from "three/examples/jsm/libs/tween.module.min";
 
 class Chunk extends Group {
-    constructor(scene, x0 = 0, z0 = 0, hasWater = true, animate) {
+    constructor(scene, x0 = 0, z0 = 0) {
         super();
 
         this.params = scene.params.chunk;
         this.scene = scene;
-        this.setPos(x0, z0);
-        this.animate = animate;
-        if (hasWater) {
-            this.water = new Water(this);
-            this.add(this.water);
-        }
-        this.land = new Land(this);
-        this.land.position.y = -this.params.seafloor.depth;
-        this.add(this.land);
-        scene.addToUpdateList(this);
-    }
-
-    setPos(x0, z0) {
         this.position.x = x0;
         this.position.z = z0;
         this.x0 = x0;
         this.z0 = z0;
+        this.water = new Water(this);
+        this.water.animate = x0 == 0 && z0 == 0;
+        this.water.visible = x0 == 0 || z0 == 0;
+        this.land = new Land(this);
+        this.land.position.y = -this.params.seafloor.depth;
+        this.add(this.land, this.water);
+        scene.addToUpdateList(this);
+    }
+
+    translate(x, z) {
+        if (this.position.x + x > 3 / 2 * this.params.width) {
+            this.position.x -= 3 * this.params.width;
+            this.x0 -= 3 * this.params.width;
+        }
+        else if (this.position.x + x < -3 / 2 * this.params.width) {
+            this.position.x += 3 * this.params.width;
+            this.x0 += 3 * this.params.width;
+        }
+        else if (this.position.z - z > 3 / 2 * this.params.height) {
+            this.position.z -= 3 * this.params.height;
+            this.z0 -= 3 * this.params.height;
+        }
+        else if (this.position.z - z < -3 / 2 * this.params.height) {
+            this.position.z += 3 * this.params.height;
+            this.z0 += 3 * this.params.height;
+        }
+        new TWEEN.Tween(this.position).to({ x: this.position.x + x, z: this.position.z + z }, this.scene.params.interval * 1000).start();
+        let inCenterRow = Math.abs(this.position.x) < this.params.width / 2;
+        let inCenterCol = Math.abs(this.position.z) < this.params.height / 2
+        this.animate = inCenterRow && inCenterCol;
+        this.water.visible = inCenterRow || inCenterCol;
     }
 
     uvToWorldXZ(u, v) {
-        return [(u - (this.params.width - 1) / 2) * this.params.scale + this.x0, (v - (this.params.height - 1) / 2) * this.params.scale + this.z0];
+        return [(u - this.params.width / 2) * this.params.scale + this.x0, (v - this.params.height / 2) * this.params.scale + this.z0];
     }
 
     uvToLocalXZ(u, v) {
-        return [(u - (this.params.width - 1) / 2) * this.params.scale, (v - (this.params.height - 1) / 2) * this.params.scale];
+        return [(u - this.params.width / 2) * this.params.scale, (v - this.params.height / 2) * this.params.scale];
     }
 
     update(deltaT) {
-        if (this.animate && this.params.wave.enabled) this.water.update(deltaT);
+        if (this.water.visible) this.water.update(deltaT);
         this.land.position.y = -this.params.seafloor.depth;
     }
 }

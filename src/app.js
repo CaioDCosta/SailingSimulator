@@ -29,7 +29,8 @@ document.body.appendChild(canvas);
 
 const clock = new Clock();
 let delta = 0;
-const interval = 1 / 30; // Target 30 FPS
+const interval = 1 / 60; // Target 30 FPS
+let time = 0;
 
 const scene = new OceanScene(interval);
 
@@ -46,10 +47,11 @@ const onAnimationFrameHandler = (timeStamp) => {
     window.requestAnimationFrame(onAnimationFrameHandler);
     delta += clock.getDelta();
     if (delta > interval) {
+        time += interval;
         controls.update();
+        TWEEN.update(time * 1000);
         renderer.render(scene, camera);
-        TWEEN.update(timeStamp);
-        scene.update && scene.update(delta);
+        scene.update && scene.update(interval);
         delta %= interval;
     }
 };

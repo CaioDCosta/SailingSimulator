@@ -11,7 +11,7 @@ class Land extends Group {
         this.islands = this.generateIslands(true);
         this.chunk = parent;
         this.geometry = new THREE.PlaneBufferGeometry(this.params.width * this.params.scale,
-            this.params.height * this.params.scale, this.params.width - 1, this.params.height - 1);
+            this.params.height * this.params.scale, this.params.width, this.params.height);
         this.material = new THREE.MeshLambertMaterial({ color: 0x555555, side: THREE.DoubleSide });
         this.mesh = new THREE.Mesh(this.geometry, this.material);
         this.add(this.mesh);
@@ -39,9 +39,9 @@ class Land extends Group {
     updateGeometry() {
         let w = this.params.width;
         let h = this.params.height;
-        let index = (u, v) => u * w + v;
-        for (let u = 0; u < w; u += 1) {
-            for (let v = 0; v < h; v += 1) {
+        let index = (u, v) => u * (w + 1) + v;
+        for (let u = 0; u <= w; u += 1) {
+            for (let v = 0; v <= h; v += 1) {
                 let i = index(u, v);
                 let [wx, wz] = this.chunk.uvToWorldXZ(u, v);
                 let [x, z] = this.chunk.uvToLocalXZ(u, v);

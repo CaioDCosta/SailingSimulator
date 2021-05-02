@@ -11,9 +11,11 @@ class Water extends THREE.Group {
         this.scene = parent.scene;
         this.previousTimeStamp = 0;
         this.geometry = new THREE.PlaneBufferGeometry(this.params.width * this.params.scale,
-            this.params.height * this.params.scale, this.params.width - 1, this.params.height - 1);
+            this.params.height * this.params.scale, this.params.width, this.params.height);
         this.material = new THREE.MeshStandardMaterial({ color: 0x0010ff, side: THREE.DoubleSide });
-
+        this.animate = false;
+        this.visible = false;
+        this.wasAnimating = true;
         this.mesh = new THREE.Mesh(this.geometry, this.material);
         this.add(this.mesh);
         this.update(0);
@@ -24,9 +26,9 @@ class Water extends THREE.Group {
 
         let g = this.params.wave.g;
         let [x_0, z_0] = this.chunk.uvToLocalXZ(u, v);
-
         let V = this.scene.state.windSpeed / 2;
-        if (V < Number.EPSILON) {
+
+        if (!this.animate || !this.params.wave.enabled || V < Number.EPSILON) {
             vec.set(x_0, 0, z_0);
             return;
         }
@@ -43,14 +45,16 @@ class Water extends THREE.Group {
     }
 
     update(deltaT) {
+        if (!this.animate && !this.wasAnimating) return;
+        this.wasAnimating = this.animate;
         let w = this.params.width, h = this.params.height;
-        let index = (u, v) => u * w + v;
+        let index = (u, v) => u * (w + 1) + v;
 
         this.time += deltaT;
 
         let vec = new THREE.Vector3();
-        for (let u = 0; u < w; u += 1) {
-            for (let v = 0; v < h; v += 1) {
+        for (let u = 0; u <= w; u += 1) {
+            for (let v = 0; v <= h; v += 1) {
                 let i = index(u, v);
                 vec.y = this.geometry.attributes.position.getY(i);
                 this.wave(u, v, vec, deltaT);

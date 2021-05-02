@@ -12,7 +12,7 @@ class Boat extends Group {
         // Load object
         const loader = new GLTFLoader();
         this.params = scene.params.boat;
-        this.deltaPos = new Vector3();
+        this.velocity = new Vector3();
         this.previous = new Vector3();
         this.scene = scene;
 
@@ -29,10 +29,10 @@ class Boat extends Group {
 
     update(deltaT) {
         let force = this.sail.update(deltaT);
-        force.multiplyScalar(this.params.forceMultiplier);
         force.y = 0;
-        this.deltaPos.multiplyScalar(0.5)
-            .add(force.multiplyScalar(deltaT * deltaT / this.params.mass));
+        this.velocity.multiplyScalar(1 - this.params.damping)
+            .add(force.multiplyScalar(this.params.forceMultiplier * deltaT * deltaT / this.params.mass));
+        this.velocity.multiplyScalar(this.params.velocityMultiplier);
     }
 }
 
