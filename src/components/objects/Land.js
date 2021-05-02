@@ -23,8 +23,16 @@ class Land extends Group {
         let s = this.params.seafloor;
         let i = this.params.island;
         let g = 0;
+
+        // Don't add islands at boundaries
+        let distX = this.params.width / 2 - Math.abs(x);
+        let distZ = this.params.height / 2 - Math.abs(z);
+        let fadeThresh = 20;
+        distX = Math.max(0, Math.min(1, (distX - fadeThresh) / fadeThresh));
+        distZ = Math.max(0, Math.min(1, (distZ - fadeThresh) / fadeThresh));
         for (let island of this.islands) {
-            g += this.gaussian(x, z, island.x, island.z, island.peak, island.varX, island.varY);
+            let gauss = this.gaussian(x, z, island.x, island.z, island.peak, island.varX, island.varY);
+            if (gauss > 0.05) g += gauss * Perlin.fade(distX) * Perlin.fade(distZ);
         }
         let p = Perlin.fBM(wx, 0, wz, s.init_freq, s.oct, s.lac, s.gain, s.init_amp) * s.amp;
         let y = p + g;
