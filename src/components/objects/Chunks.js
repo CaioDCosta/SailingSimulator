@@ -1,11 +1,12 @@
 import { Group } from 'three';
 import { Chunk, Boundary, Water } from 'objects';
+import { TWEEN } from 'three/examples/jsm/libs/tween.module.min';
 class Chunks extends Group {
     constructor(scene) {
         super();
         this.params = scene.params.chunk;
-        // this.boundary = new Boundary(scene, 500, this.params.width, this.params.height);
-        this.water = new Water(scene, this.params.width, this.params.height);
+        this.boundary = new Boundary(scene, this.params.width * 3 + 500, this.params.width, this.params.height);
+        this.water = new Water(scene, this, this.params.width, this.params.height);
         this.array = [];
         for (let r = -1; r <= 1; r++) {
             let chunks = [];
@@ -18,7 +19,9 @@ class Chunks extends Group {
             }
             this.array.push(chunks);
         }
-        this.add(this.water, ...this.array.flat());
+        this.add(this.water, this.boundary, ...this.array.flat());
+        this.tween = new TWEEN.Tween(this.position);
+        this.scene = scene;
     }
 
     translate(x, z) {

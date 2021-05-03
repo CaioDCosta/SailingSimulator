@@ -81,7 +81,7 @@ class Land extends Group {
 
     updateIslands(attribute) {
         if (attribute !== undefined) {
-            if (attribute == 'num') {
+            if (attribute == 'new') {
                 this.islands = this.generateIslands(true);
             }
             else {

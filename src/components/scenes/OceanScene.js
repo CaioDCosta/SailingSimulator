@@ -2,6 +2,7 @@ import * as Dat from 'dat.gui';
 import * as THREE from 'three';
 import { Boat, Chunks } from 'objects';
 import { BasicLights } from 'lights';
+import { ArrowHelper } from 'three';
 
 class OceanScene extends THREE.Scene {
     constructor(interval) {
@@ -34,6 +35,8 @@ class OceanScene extends THREE.Scene {
                 enabled: true,
                 width: 200,
                 height: 200,
+                minSize: 10,
+                maxSize: 100,
                 g: 9.8,
                 lambda: 2,
                 numTrains: 1,
@@ -90,6 +93,9 @@ class OceanScene extends THREE.Scene {
         this.add(lights, this.chunks);
         this.attach(boat);
 
+        this.ah = new ArrowHelper(this.windDirection, new THREE.Vector3(0, 1, 0), 20);
+        this.add(this.ah);
+
         // Populate GUI
         this.state.gui.add(this.state, 'rotationSpeed', -5, 5);
         this.state.gui.add(this.state, 'windSpeed', 0, 20);
@@ -108,6 +114,9 @@ class OceanScene extends THREE.Scene {
         wave.add(this.params.wave, "h", 0, 10);
         wave.add(this.params.wave, "s", 0, 1);
         wave.add(this.params.wave, "freq", 0, 1);
+        wave.add(this.params.wave, "minSize", 0, 100);
+        wave.add(this.params.wave, "maxSize", 0, 100);
+        wave.add(this.params.wave, "numTrains", 0, 5, 1);
         let seafloor = this.state.gui.addFolder("Seafloor");
         seafloor.add(this.params.chunk.seafloor, 'oct', 0, 10, 1);
         seafloor.add(this.params.chunk.seafloor, 'gain', 0, 5);
@@ -121,8 +130,8 @@ class OceanScene extends THREE.Scene {
             this.chunks.update(arg);
         }
         let island = this.state.gui.addFolder("Island");
-        island.add(this.params.chunk.island, 'minIslandsPerChunk', 0, 5, 1).onChange(() => updateIslands('num'));
-        island.add(this.params.chunk.island, 'maxIslandsPerChunk', 0, 5, 1).onChange(() => updateIslands('num'));
+        island.add(this.params.chunk.island, 'minIslandsPerChunk', 0, 5, 1).onChange(() => updateIslands('new'));
+        island.add(this.params.chunk.island, 'maxIslandsPerChunk', 0, 5, 1).onChange(() => updateIslands('new'));
         island.add(this.params.chunk.island, 'height', 0, 100).onChange(() => updateIslands('peak'));
         island.add(this.params.chunk.island, 'size', 0, 1000).onChange(() => updateIslands('size'));
         island.add(this.params.chunk.island, 'varX', 0, 100).onChange(() => updateIslands('varX'));
@@ -147,6 +156,7 @@ class OceanScene extends THREE.Scene {
         const { rotationSpeed, updateList } = this.state;
         this.boat.rotation.y += rotationSpeed / 100;
         this.state.windDirection.set(Math.cos(this.state.windHeading), 0, Math.sin(this.state.windHeading));
+        this.ah.setDirection(this.state.windDirection);
         // Call update for each object in the updateList
         for (const obj of updateList) {
             obj.update(deltaT);

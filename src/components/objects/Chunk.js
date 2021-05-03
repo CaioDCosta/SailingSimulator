@@ -22,18 +22,22 @@ class Chunk extends Group {
         if (this.position.x + x > 3 / 2 * this.params.width) {
             this.position.x -= 3 * this.params.width;
             this.x0 -= 3 * this.params.width;
+            this.land.updateIslands('new');
         }
         else if (this.position.x + x < -3 / 2 * this.params.width) {
             this.position.x += 3 * this.params.width;
             this.x0 += 3 * this.params.width;
+            this.land.updateIslands('new');
         }
         else if (this.position.z - z > 3 / 2 * this.params.height) {
             this.position.z -= 3 * this.params.height;
             this.z0 -= 3 * this.params.height;
+            this.land.updateIslands('new');
         }
         else if (this.position.z - z < -3 / 2 * this.params.height) {
             this.position.z += 3 * this.params.height;
             this.z0 += 3 * this.params.height;
+            this.land.updateIslands('new');
         }
         new TWEEN.Tween(this.position).to({ x: this.position.x + x, z: this.position.z + z }, this.scene.params.interval * 1000).start(this.scene.state.time);
     }
