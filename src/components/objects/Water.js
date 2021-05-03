@@ -4,7 +4,7 @@ import { Perlin } from 'utils';
 class Train {
     constructor(scene, xCenter = 0, zCenter = 0, trainWidth = 50, trainHeight = 50, direction = 0) {
         this.params = scene.params.wave;
-        this.amplitude = (u, v) => this.noiseAmp(u) * this.standardAmp(v);
+        this.amplitude = (u, v) => this.noiseAmp(u, v) * this.standardAmp(v);
         this.xCenter = xCenter;
         this.zCenter = zCenter;
         this.trainWidth = trainWidth;
@@ -55,10 +55,10 @@ class Train {
         return Math.max(0, params.h * Math.min(Math.max(0, Math.min(1, params.s)), 1 - x * x / (params.w * params.w)));
     }
 
-    noiseAmp(x) {
-        let time = this.scene.state.time * this.id;
-        let p = Perlin.noise(time, time, time, this.params.freq);
-        return this.standardAmp(x);
+    noiseAmp(x, s) {
+        let seed = x * s * this.id / this.trainWidth;
+        let p = (Perlin.noise(seed, seed, seed, this.params.freq) + 2) / 2;
+        return this.standardAmp(x) * p;
     }
 
     // Return true if we have exceeded the water bounds

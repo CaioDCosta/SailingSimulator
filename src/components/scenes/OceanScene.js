@@ -87,8 +87,8 @@ class OceanScene extends THREE.Scene {
         const lights = new BasicLights();
         this.chunks = new Chunks(this);
 
-        let near = (this.params.chunk.height + this.params.chunk.width) / 20;
-        let far = 1000;
+        let near = 10;
+        let far = this.params.chunk.width * 3 / 2;
         this.fog = new THREE.Fog(sceneColor, near, far);
         this.add(lights, this.chunks);
         this.attach(boat);
