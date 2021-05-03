@@ -1,10 +1,11 @@
 import { Group } from 'three';
-import { Chunk, Boundary } from 'objects';
+import { Chunk, Boundary, Water } from 'objects';
 class Chunks extends Group {
     constructor(scene) {
         super();
         this.params = scene.params.chunk;
-        this.boundary = new Boundary(scene, 500, this.params.width, this.params.height);
+        // this.boundary = new Boundary(scene, 500, this.params.width, this.params.height);
+        this.water = new Water(scene, this.params.width, this.params.height);
         this.array = [];
         for (let r = -1; r <= 1; r++) {
             let chunks = [];
@@ -17,7 +18,7 @@ class Chunks extends Group {
             }
             this.array.push(chunks);
         }
-        this.add(this.boundary, ...this.array.flat());
+        this.add(this.water, ...this.array.flat());
     }
 
     translate(x, z) {
@@ -25,7 +26,7 @@ class Chunks extends Group {
         for (let chunk of this.array.flat()) {
             chunk.translate(x, z);
         }
-        this.boundary.translate(x, z);
+        this.water.translate(x, z);
     }
 
     update(arg) {

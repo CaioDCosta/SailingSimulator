@@ -30,12 +30,19 @@ class OceanScene extends THREE.Scene {
                 velocityMultiplier: 2,
                 damping: 0.5
             },
+            wave: {
+                enabled: true,
+                width: 200,
+                height: 200,
+                g: 9.8,
+                lambda: 2,
+                numTrains: 1,
+                w: 10,
+                s: 1,
+                h: 1,
+                freq: .1
+            },
             chunk: {
-                wave: {
-                    enabled: true,
-                    g: 9.8,
-                    lambda: 2
-                },
                 seafloor: {
                     oct: 3,
                     gain: 1,
@@ -94,9 +101,13 @@ class OceanScene extends THREE.Scene {
         this.state.gui.add(this.params, 'fog').onChange((showFog) => this.fog.near = showFog ? near : far);
 
         let wave = this.state.gui.addFolder("Wave");
-        wave.add(this.params.chunk.wave, "g", 0, 40);
-        wave.add(this.params.chunk.wave, "lambda", 0, 5);
-        wave.add(this.params.chunk.wave, "enabled");
+        wave.add(this.params.wave, "g", 1, 40);
+        wave.add(this.params.wave, "lambda", 0, 5);
+        wave.add(this.params.wave, "enabled");
+        wave.add(this.params.wave, "w", 1, 100);
+        wave.add(this.params.wave, "h", 0, 10);
+        wave.add(this.params.wave, "s", 0, 1);
+        wave.add(this.params.wave, "freq", 0, 1);
         let seafloor = this.state.gui.addFolder("Seafloor");
         seafloor.add(this.params.chunk.seafloor, 'oct', 0, 10, 1);
         seafloor.add(this.params.chunk.seafloor, 'gain', 0, 5);

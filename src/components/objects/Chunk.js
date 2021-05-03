@@ -1,4 +1,4 @@
-import { Water, Land } from "objects";
+import { Land } from "objects";
 import { Group } from "three";
 import { TWEEN } from "three/examples/jsm/libs/tween.module.min";
 
@@ -12,12 +12,9 @@ class Chunk extends Group {
         this.position.z = z0;
         this.x0 = x0;
         this.z0 = z0;
-        this.water = new Water(this);
-        this.water.animate = x0 == 0 && z0 == 0;
-        this.water.visible = x0 == 0 || z0 == 0;
         this.land = new Land(this);
         this.land.position.y = -this.params.seafloor.depth;
-        this.add(this.land, this.water);
+        this.add(this.land);
         scene.addToUpdateList(this);
     }
 
@@ -39,10 +36,6 @@ class Chunk extends Group {
             this.z0 += 3 * this.params.height;
         }
         new TWEEN.Tween(this.position).to({ x: this.position.x + x, z: this.position.z + z }, this.scene.params.interval * 1000).start(this.scene.state.time);
-        let inCenterRow = Math.abs(this.position.x) < this.params.width / 2;
-        let inCenterCol = Math.abs(this.position.z) < this.params.height / 2
-        this.water.animate = inCenterRow && inCenterCol;
-        this.water.visible = inCenterRow || inCenterCol;
     }
 
     uvToWorldXZ(u, v) {
@@ -54,7 +47,6 @@ class Chunk extends Group {
     }
 
     update(deltaT) {
-        if (this.water.visible) this.water.update(deltaT);
         this.land.position.y = -this.params.seafloor.depth;
     }
 }
