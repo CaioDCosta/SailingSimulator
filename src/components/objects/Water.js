@@ -2,33 +2,52 @@ import * as THREE from 'three';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min';
 import { Perlin } from 'utils';
 class Train {
-    constructor(scene, xCenter = 0, zCenter = 0, sizeX = 50, sizeZ = 50, direction = 0) {
+    constructor(scene, xCenter = 0, zCenter = 0, trainWidth = 50, trainHeight = 50, direction = 0) {
         this.params = scene.params.wave;
-        this.amplitude = (x, z) => this.noiseAmp(x) * this.standardAmp(z);
+        this.amplitude = (u, v) => this.noiseAmp(u) * this.standardAmp(v);
         this.xCenter = xCenter;
         this.zCenter = zCenter;
-        this.sizeX = sizeX;
-        this.sizeZ = sizeZ;
+        this.trainWidth = trainWidth;
+        this.trainHeight = trainHeight;
         this.direction = direction;
         this.directionVector = new THREE.Vector3(Math.cos(direction), 0, Math.sin(direction));
         this.speed = 0;
         this.depth = 0;
         this.scene = scene;
-        this.ah = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(this.xCenter, 1, this.zCenter), 10);
+        this.ah = new THREE.ArrowHelper(this.directionVector, new THREE.Vector3(this.xCenter, 2, this.zCenter), 10);
         this.scene.add(this.ah);
         this.id = this.params.id++;
     }
 
     getPos(x, z, y, time, deltaT, vec) {
-        let r = this.amplitude(x - this.xCenter, z - this.zCenter);
-        if (this.omega < 0) return;
-        let phi = this.kappa * x - this.omega * time - this.params.lambda * y * deltaT;
-        vec.x += r * Math.sin(phi);
+        let [u, v] = this.toLocal(x, z);
+        let r = this.amplitude(u, v);
+        if (r < Number.EPSILON || this.omega < Number.EPSILON) return;
+        let phi = this.kappa * u - this.omega * time - this.scene.params.wave.lambda * y * deltaT;
+        let [newX, newZ] = this.toWorld(u + r * Math.sin(phi), v);
+        vec.x += newX - x;
         vec.y -= r * Math.cos(phi)
+        vec.z += newZ - z;
+    }
+
+    toLocal(x, z) {
+        let xt = x - this.xCenter;
+        let zt = z - this.zCenter;
+        let u = this.directionVector.x * xt + this.directionVector.z * zt;
+        let v = this.directionVector.z * xt - this.directionVector.x * zt;
+        return [u, v];
+
+    }
+
+    toWorld(u, v) {
+        let x = this.directionVector.x * u + this.directionVector.z * v + this.xCenter;
+        let z = this.directionVector.z * u - this.directionVector.x * v + this.zCenter;
+        return [x, z];
     }
 
     contains(x, z) {
-        return Math.abs(x - this.xCenter) < this.sizeX / 2 && Math.abs(z - this.zCenter) < this.sizeZ / 2;
+        let [u, v] = this.toLocal(x, z);
+        return Math.abs(u) < this.trainWidth / 2 && Math.abs(v) < this.trainHeight / 2;
     }
 
     standardAmp(x) {
@@ -37,15 +56,17 @@ class Train {
     }
 
     noiseAmp(x) {
-        let time = this.scene.state.time;
-        return this.standardAmp(x) * Perlin.noise(time, time, time, this.params.freq);
+        let time = this.scene.state.time * this.id;
+        let p = Perlin.noise(time, time, time, this.params.freq);
+        return this.standardAmp(x);
     }
 
+    // Return true if we have exceeded the water bounds
     translate(x, z) {
         this.xCenter += x;
         this.zCenter += z;
         this.ah.position.set(this.xCenter, 0, this.zCenter);
-        return Math.abs(this.xCenter) > this.params.width || Math.abs(this.zCenter) > this.params.height;
+        return Math.abs(this.xCenter) > this.params.width / 2 || Math.abs(this.zCenter) > this.params.height / 2;
     }
 
     update() {
@@ -60,7 +81,10 @@ class Train {
         this.speed = this.L / this.T / 2;
         this.kappa = (2 * Math.PI) / this.L;
         this.ah.setDirection(this.directionVector);
-        this.translate(Math.cos(this.direction) * this.speed / 10, Math.sin(this.direction) * this.speed / 10);
+        this.direction = this.scene.state.windHeading;
+        this.directionVector.set(Math.cos(this.direction), 0, Math.sin(this.direction));
+        this.ah.setDirection(this.directionVector);
+        // this.translate(Math.cos(this.direction) * this.speed / 10, Math.sin(this.direction) * this.speed / 10);
     }
 }
 
@@ -70,7 +94,7 @@ class Water extends THREE.Group {
         super();
 
         this.params = scene.params.wave;
-        this.params.id = 0;
+        this.params.id = 1;
         this.time = 0;
         this.scene = scene;
         this.previousTimeStamp = 0;
