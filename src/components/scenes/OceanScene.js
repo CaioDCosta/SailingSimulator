@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { Boat, Chunks } from 'objects';
 import { BasicLights } from 'lights';
 import { ArrowHelper } from 'three';
+import { AxesHelper } from 'three';
 
 class OceanScene extends THREE.Scene {
     constructor(interval) {
@@ -35,15 +36,25 @@ class OceanScene extends THREE.Scene {
                 enabled: true,
                 width: 200,
                 height: 200,
-                minSize: 10,
-                maxSize: 100,
+                minSize: 40,
+                maxSize: 60,
                 g: 9.8,
                 lambda: 2,
                 numTrains: 1,
                 w: 10,
                 s: 1,
                 h: 1,
-                freq: .1
+                freq: .1,
+                kappa0: 1,
+                kappaX: 1,
+                kappaY: 1,
+                r: .2,
+                kappa: .2,
+                omega: 1,
+                medianWavelength: 1,
+                medianAmplitude: 1,
+                steepness: 0.5,
+                numWaves: 5
             },
             chunk: {
                 seafloor: {
@@ -51,15 +62,15 @@ class OceanScene extends THREE.Scene {
                     gain: 1,
                     lac: 1.3,
                     init_amp: .5,
-                    init_freq: .02,
+                    init_freq: .01,
                     amp: 20,
                     depth: 30
                 },
                 island: {
                     minIslandsPerChunk: 0,
                     maxIslandsPerChunk: 3,
-                    height: 50,
-                    size: 500,
+                    height: 30,
+                    size: 1000,
                     varX: 100,
                     varY: 100,
                     oct: 6,
@@ -96,6 +107,8 @@ class OceanScene extends THREE.Scene {
         this.ah = new ArrowHelper(this.windDirection, new THREE.Vector3(0, 1, 0), 20);
         this.add(this.ah);
 
+        this.add(new AxesHelper(20));
+
         // Populate GUI
         this.state.gui.add(this.state, 'rotationSpeed', -5, 5);
         this.state.gui.add(this.state, 'windSpeed', 0, 20);
@@ -107,6 +120,10 @@ class OceanScene extends THREE.Scene {
         this.state.gui.add(this.params, 'fog').onChange((showFog) => this.fog.near = showFog ? near : far);
 
         let wave = this.state.gui.addFolder("Wave");
+        wave.add(this.params.wave, "medianWavelength", 0.1, 50);
+        wave.add(this.params.wave, "medianAmplitude", 0.1, 5);
+        wave.add(this.params.wave, "steepness", 0, 1);
+        wave.add(this.params.wave, "numWaves", 0, 100, 1);
         wave.add(this.params.wave, "g", 1, 40);
         wave.add(this.params.wave, "lambda", 0, 5);
         wave.add(this.params.wave, "enabled");

@@ -47,9 +47,9 @@ class Land extends Group {
     updateGeometry() {
         let w = this.params.width;
         let h = this.params.height;
-        let index = (u, v) => u * (w + 1) + v;
-        for (let u = 0; u <= w; u += 1) {
-            for (let v = 0; v <= h; v += 1) {
+        let index = (u, v) => v * (h + 1) + u;
+        for (let v = 0; v <= h; v += 1) {
+            for (let u = 0; u <= w; u += 1) {
                 let i = index(u, v);
                 let [wx, wz] = this.chunk.uvToWorldXZ(u, v);
                 let [x, z] = this.chunk.uvToLocalXZ(u, v);

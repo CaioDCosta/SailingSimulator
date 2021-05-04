@@ -24,6 +24,20 @@ class Chunks extends Group {
         this.scene = scene;
     }
 
+    getSlope(x, z, directionVector) {
+        let deltaX = Math.round(directionVector.x);
+        let deltaZ = Math.round(directionVector.z);
+        let depth1 = this.getDepth(x, z);
+        let depth2 = this.getDepth(x + deltaX, z + deltaZ);
+        return depth2 - depth1;
+    }
+
+    getDepth(x, z) {
+        let X = Math.floor(x + this.params.width / 2);
+        let Z = Math.floor(z + this.params.height / 2);
+        return Math.max(0.1, -this.array[1][1].land.geometry.attributes.position.getY(Z * (this.params.height + 1) + X));
+    }
+
     translate(x, z) {
         if (Math.abs(x) < Number.EPSILON && Math.abs(z) < Number.EPSILON) return;
         for (let chunk of this.array.flat()) {
