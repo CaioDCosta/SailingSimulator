@@ -39,7 +39,7 @@ class Train {
         // // vec.z += newZ - z;
         // let [u, v] = this.toLocal(x, z);
         let r = this.amplitude * this.amplitudeFunction(...this.toLocal(x, z));
-        let arg = this.directionVector.x * this.freq * x + this.directionVector.z * this.freq * z + this.phi * time; // + this.params.lambda * y;
+        let arg = this.directionVector.x * this.freq * x + this.directionVector.z * this.freq * z + this.phi * time;
         let mag = this.steepness * r * Math.cos(arg);
         let height = r * Math.sin(arg);
         // let [newX, newZ] = this.toWorld(u + mag * this.directionVector.x, v + mag * this.directionVector.z);
@@ -74,7 +74,7 @@ class Train {
     }
 
     noiseAmp(x, s) {
-        let seed = x * s * this.id / this.trainWidth;
+        // let seed = x * s * this.id / this.trainWidth;
         let p = (Perlin.noise(Math.random(), Math.random(), Math.random(), this.params.freq) + 2) / 2;
         return this.standardAmp(x) * p;
     }
@@ -89,15 +89,10 @@ class Train {
     }
 
     update() {
-        let V = this.scene.state.windSpeed;
-        if (V < Number.EPSILON) {
-            this.omega = -1;
-            return;
-        }
         this.direction = this.scene.state.windHeading;
         this.directionVector.set(Math.cos(this.direction), 0, Math.sin(this.direction));
 
-        this.wavelength = this.wavelengthMult * this.params.medianWavelength;
+        this.wavelength = this.wavelengthMult * this.params.medianWavelength * this.scene.state.windSpeed;
         this.amplitude = this.params.medianAmplitude / this.params.medianWavelength * this.wavelength;
         this.depth = Perlin.lerp(0.5, this.depth, this.scene.chunks.getDepth(this.xCenter, this.zCenter));
         this.kappa = Math.PI * 2 / this.wavelength;
@@ -106,19 +101,6 @@ class Train {
         this.steepness = this.params.steepness / (this.amplitude * this.freq);
         this.phi = this.speed * 2 / this.wavelength;
 
-        // this.kappa = V / 2;
-        // this.tanh = Math.tanh(this.kappa * this.depth);
-        // // this.omega = Math.sqrt(this.params.g * this.kappa * this.tanh);
-        // this.omega = 1;
-        // this.waveVector.copy(this.directionVector).multiplyScalar(this.kappa);
-        // this.omega = this.params.g / V * Math.sqrt(2 / 3);
-        // this.T = 2 * Math.PI / this.omega;
-        // this.L = this.params.g * this.T * this.T / (2 * Math.PI);
-        // this.cInf = this.params.g * this.T / (2 * Math.PI);
-        // this.kappaInf = Math.PI * 2 / this.L;
-        // this.kappa = this.kappaInf / Math.sqrt(Math.tanh(this.kappaInf * this.depth));
-        // this.c = this.kappaInf * this.cInf / this.kappa;
-        // this.groupVelocity = this.c / 2;
         // this.cumDepth += (this.kappa - this.kappaInf) * this.groupVelocity / 10;
         // this.gamma = Perlin.lerp(0.5, this.gamma, this.scene.chunks.getSlope(this.xCenter, this.zCenter, this.directionVector));
         // let alpha = this.gamma * Math.exp(-this.params.kappa0 * this.depth);
@@ -200,7 +182,7 @@ class Water extends THREE.Group {
                     if (train.contains(x, z)) {
                         train.getPos(x, z, this.time, vec);
                     }
-                }               
+                }
                 this.geometry.attributes.position.setXYZ(i, x + vec.x, vec.y, z + vec.z);
             }
         }

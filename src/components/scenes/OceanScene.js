@@ -39,22 +39,16 @@ class OceanScene extends THREE.Scene {
                 minSize: 40,
                 maxSize: 60,
                 g: 9.8,
-                lambda: 2,
-                numTrains: 1,
                 w: 10,
                 s: 1,
-                h: 1,
                 freq: .1,
                 kappa0: 1,
                 kappaX: 1,
                 kappaY: 1,
-                r: .2,
-                kappa: .2,
-                omega: 1,
                 medianWavelength: 1,
                 medianAmplitude: 1,
                 steepness: 0.5,
-                numWaves: 5
+                numTrains: 1
             },
             chunk: {
                 seafloor: {
@@ -123,12 +117,8 @@ class OceanScene extends THREE.Scene {
         wave.add(this.params.wave, "medianWavelength", 0.1, 50);
         wave.add(this.params.wave, "medianAmplitude", 0.1, 5);
         wave.add(this.params.wave, "steepness", 0, 1);
-        wave.add(this.params.wave, "numWaves", 0, 100, 1);
         wave.add(this.params.wave, "g", 1, 40);
-        wave.add(this.params.wave, "lambda", 0, 5);
-        wave.add(this.params.wave, "enabled");
         wave.add(this.params.wave, "w", 1, 100);
-        wave.add(this.params.wave, "h", 0, 10);
         wave.add(this.params.wave, "s", 0, 1);
         wave.add(this.params.wave, "freq", 0, 1);
         wave.add(this.params.wave, "minSize", 0, 100);
