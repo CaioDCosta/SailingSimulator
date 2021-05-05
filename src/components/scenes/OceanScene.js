@@ -1,7 +1,7 @@
 import * as Dat from 'dat.gui';
 import * as THREE from 'three';
 import { Boat, Chunks } from 'objects';
-import { BasicLights } from 'lights';
+import { Sun } from 'lights';
 import { ArrowHelper } from 'three';
 import { AxesHelper } from 'three';
 
@@ -28,7 +28,9 @@ class OceanScene extends THREE.Scene {
             fog: true,
             lights: {
                 intensity: 2,
-                distance: 0,
+                color: 0xffffff,
+                azimuth: Math.PI / 2,
+                distance: 500,
             },
             boat: {
                 mass: 1,
@@ -87,26 +89,30 @@ class OceanScene extends THREE.Scene {
             },
         }
 
+        // Skybox from https://doc.babylonjs.com/toolsAndResources/assetLibraries/availableTextures#cubetextures
+        const fnames = ['px', 'nx', 'py', 'ny', 'pz', 'nz'].map(x => `/src/components/objects/res/TropicalSunnyDay_${x}.jpg`);
+        const skybox = new THREE.CubeTextureLoader().load(fnames);
+
         // Set background to a nice color
-        let sceneColor = 0x7ec0ee;
-        this.background = new THREE.Color(sceneColor);
+        let sceneColor = 0x979997;
+        this.background = skybox;
 
         // Add meshes to scene    
         const boat = new Boat(this);
         this.boat = boat;
-        const lights = new BasicLights(this);
+        const sun = new Sun(this);
         this.chunks = new Chunks(this);
 
         let near = 10;
-        let far = this.params.chunk.width * 3 / 2;
+        let far = this.params.chunk.width * 2;
         this.fog = new THREE.Fog(sceneColor, near, far);
-        this.add(lights, this.chunks);
+        this.add(sun, this.chunks);
         this.attach(boat);
 
-        this.ah = new ArrowHelper(this.windDirection, new THREE.Vector3(0, 1, 0), 20);
-        this.add(this.ah);
+        // this.ah = new ArrowHelper(this.windDirection, new THREE.Vector3(0, 1, 0), 20);
+        // this.add(this.ah);
 
-        this.add(new AxesHelper(20));
+        // this.add(new AxesHelper(20));
 
         // Populate GUI
         this.state.gui.add(this.state, 'rotationSpeed', -5, 5);
@@ -116,8 +122,8 @@ class OceanScene extends THREE.Scene {
         this.state.gui.add(this.params.boat, 'forceMultiplier', 1, 100);
         this.state.gui.add(this.params.boat, 'velocityMultiplier', 0, 3);
         this.state.gui.add(this.params.boat, 'damping', 0, 1);
-        this.state.gui.add(this.params, 'fog').onChange((showFog) => this.fog.near = showFog ? near : far);
-
+        this.state.gui.add(this.params, 'fog').onChange(
+            (showFog) => { this.fog.near = showFog ? near : 20000; this.fog.far = showFog ? far : 20000 });
         let wave = this.state.gui.addFolder("Wave");
         wave.add(this.params.wave, "medianWavelength", 0.1, 50);
         wave.add(this.params.wave, "medianAmplitude", 0.1, 5);
@@ -125,14 +131,18 @@ class OceanScene extends THREE.Scene {
         wave.add(this.params.wave, "g", 1, 40);
         wave.add(this.params.wave, "trainWidthScaling", 0, 1);
         wave.add(this.params.wave, "trainHeightScaling", 0, 1);
-        wave.add(this.params.wave, "waveHeightScaling", 0, 1);
+        wave.add(this.params.wave, "waveHeightScaling", 0, 3);
         wave.add(this.params.wave, "waveHeightFreq", 0, 1);
         wave.add(this.params.wave, "minSize", 0, 100);
         wave.add(this.params.wave, "maxSize", 0, 100);
         wave.add(this.params.wave, "numTrains", 0, 5, 1);
+
         let lighting = this.state.gui.addFolder("Lighting");
         lighting.add(this.params.lights, "intensity", 0, 50);
+        lighting.addColor(this.params.lights, "color");
+        lighting.add(this.params.lights, "azimuth", 0, Math.PI);
         lighting.add(this.params.lights, "distance", 0, 1000);
+
         let seafloor = this.state.gui.addFolder("Seafloor");
         seafloor.add(this.params.chunk.seafloor, 'oct', 0, 10, 1);
         seafloor.add(this.params.chunk.seafloor, 'gain', 0, 5);
@@ -172,7 +182,7 @@ class OceanScene extends THREE.Scene {
         const { rotationSpeed, updateList } = this.state;
         this.boat.rotation.y += rotationSpeed / 100;
         this.state.windDirection.set(Math.cos(this.state.windHeading), 0, Math.sin(this.state.windHeading));
-        this.ah.setDirection(this.state.windDirection);
+        // this.ah.setDirection(this.state.windDirection);
         // Call update for each object in the updateList
         for (const obj of updateList) {
             obj.update(deltaT);

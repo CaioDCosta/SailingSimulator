@@ -13,8 +13,8 @@ class Train {
         this.cumDepth = 0;
         this.params.kappa = Math.PI * 2 / this.params.wavelength;
 
-        this.ah = new THREE.ArrowHelper(this.directionVector, new THREE.Vector3(this.xCenter, 5, this.zCenter), 10);
-        this.scene.add(this.ah);
+        // this.ah = new THREE.ArrowHelper(this.directionVector, new THREE.Vector3(this.xCenter, 5, this.zCenter), 10);
+        // this.scene.add(this.ah);
 
     }
 
@@ -81,7 +81,7 @@ class Train {
             this.params.xCenter %= this.params.trainWidth;
             this.params.zCenter %= this.params.trainHeight;
         };
-        this.ah.position.set(this.params.xCenter, 5, this.params.zCenter);
+        // this.ah.position.set(this.params.xCenter, 5, this.params.zCenter);
         return Math.abs(this.params.xCenter) + this.params.sizeX / 2 > this.params.trainWidth / 2
             || Math.abs(this.params.zCenter) + this.params.sizeZ > this.params.trainHeight / 2;
     }

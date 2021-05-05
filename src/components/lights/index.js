@@ -1,1 +1,1 @@
-export { default as BasicLights } from './BasicLights.js';
+export { default as Sun } from './Sun.js';

@@ -8,7 +8,7 @@ class Boundary extends Group {
         this.scene = scene;
 
         const longGeo = new PlaneGeometry(targetSize, (targetSize - height) / 2);
-        const bumpTexture = new TextureLoader().load("/src/components/objects/res/water_normals.jpg");
+        const bumpTexture = new TextureLoader().load("/src/components/objects/res/water_normals.png");
         const boundaryMaterial = new MeshStandardMaterial({ color: 0x0010ff, side: DoubleSide, bumpMap: bumpTexture });
         const shortGeo = new PlaneGeometry((targetSize - width) / 2, height);
 
