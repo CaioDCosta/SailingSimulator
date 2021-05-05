@@ -1,3 +1,4 @@
 1. Chunk islands change when returning, could cache by x0, z0?
 2. Cull trains if depth > 0
 3. make sure trains get respawned 
+4. Add fixed params for each wave train using params dictionary
