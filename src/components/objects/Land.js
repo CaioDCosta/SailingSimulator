@@ -16,6 +16,8 @@ class Land extends Group {
         this.mesh = new THREE.Mesh(this.geometry, this.material);
         this.add(this.mesh);
 
+        this.mesh.castShadow = true;
+
         this.updateGeometry();
     }
 

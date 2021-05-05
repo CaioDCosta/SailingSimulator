@@ -6,7 +6,7 @@
  * handles window resizes.
  *
  */
-import { WebGLRenderer, PerspectiveCamera, Vector3, Clock } from 'three';
+import { WebGLRenderer, PerspectiveCamera, Vector3, Clock, PCFSoftShadowMap } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { OceanScene } from 'scenes';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
@@ -15,6 +15,8 @@ import Stats from 'three/examples/jsm/libs/stats.module.js'
 // Initialize core ThreeJS components
 const camera = new PerspectiveCamera();
 const renderer = new WebGLRenderer({ antialias: true });
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = PCFSoftShadowMap;
 
 // Set up camera
 camera.position.set(6, 3, -10);

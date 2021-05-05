@@ -26,6 +26,10 @@ class OceanScene extends THREE.Scene {
         this.params = {
             interval: interval,
             fog: true,
+            lights: {
+                intensity: 2,
+                distance: 0,
+            },
             boat: {
                 mass: 1,
                 forceMultiplier: 1,
@@ -90,7 +94,7 @@ class OceanScene extends THREE.Scene {
         // Add meshes to scene    
         const boat = new Boat(this);
         this.boat = boat;
-        const lights = new BasicLights();
+        const lights = new BasicLights(this);
         this.chunks = new Chunks(this);
 
         let near = 10;
@@ -126,6 +130,9 @@ class OceanScene extends THREE.Scene {
         wave.add(this.params.wave, "minSize", 0, 100);
         wave.add(this.params.wave, "maxSize", 0, 100);
         wave.add(this.params.wave, "numTrains", 0, 5, 1);
+        let lighting = this.state.gui.addFolder("Lighting");
+        lighting.add(this.params.lights, "intensity", 0, 50);
+        lighting.add(this.params.lights, "distance", 0, 1000);
         let seafloor = this.state.gui.addFolder("Seafloor");
         seafloor.add(this.params.chunk.seafloor, 'oct', 0, 10, 1);
         seafloor.add(this.params.chunk.seafloor, 'gain', 0, 5);

@@ -18,13 +18,13 @@ class Boat extends Group {
 
         this.name = 'boat';
         loader.load(path.resolve('/src/components/objects/res/boat.glb'), (gltf) => {
-            this.add(gltf.scene);
+            this.add(gltf.scene);            
         });
 
         this.sail = new Sail(this);
 
         // Add self to parent's update list
-        scene.addToUpdateList(this);
+        scene.addToUpdateList(this);        
     }
 
     update(deltaT) {

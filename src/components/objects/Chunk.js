@@ -15,6 +15,10 @@ class Chunk extends Group {
         this.land = new Land(this);
         this.land.position.y = -this.params.seafloor.depth;
         this.add(this.land);
+
+        this.castShadow = true;
+        this.receiveShadow = true;
+
         scene.addToUpdateList(this);
     }
 

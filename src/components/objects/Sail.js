@@ -114,7 +114,7 @@ class Sail extends Group {
         this.fabricLength = fabricLength;
         let rs = .1;
         this.riggingSize = rs;
-        this.restDistance = .5; // for adjacent particles
+        this.restDistance = .2; // for adjacent particles
         this.restDistanceB = 2; // multiplier for 2-away particles
         this.restDistanceS = Math.sqrt(2);
         this.particleMass = 0.1;
@@ -147,6 +147,7 @@ class Sail extends Group {
         sail.material = new THREE.MeshLambertMaterial({ color: 0xeeeeee, side: THREE.DoubleSide, flatShading: true });
         sail.mesh = new THREE.Mesh(sail.geometry, sail.material);
         sail.mesh.castShadow = true;
+        sail.mesh.receiveShadow = true;
         this.sail = sail;
 
         let mast = {};
@@ -157,6 +158,8 @@ class Sail extends Group {
         mast.bbox = mast.geometry.boundingBox;
         mast.material = new THREE.MeshStandardMaterial({ color: 0x603913 });
         mast.mesh = new THREE.Mesh(mast.geometry, mast.material);
+        mast.mesh.castShadow = true;
+        mast.mesh.receiveShadow = true;
         this.mast = mast;
 
         let boom1 = {};
@@ -164,6 +167,8 @@ class Sail extends Group {
         boom1.geometry.translate(0, sailOffset, rs);
         boom1.material = new THREE.MeshStandardMaterial({ color: 0x603913 });
         boom1.mesh = new THREE.Mesh(boom1.geometry, boom1.material);
+        boom1.mesh.castShadow = true;
+        boom1.mesh.receiveShadow = true;
         boom1.geometry.computeBoundingBox();
         boom1.bbox = boom1.geometry.boundingBox;
 
@@ -172,6 +177,8 @@ class Sail extends Group {
         boom2.geometry.translate(0, sailOffset + this.fabricLength, rs);
         boom2.material = new THREE.MeshStandardMaterial({ color: 0x603913 });
         boom2.mesh = new THREE.Mesh(boom2.geometry, boom2.material);
+        boom2.mesh.castShadow = true;
+        boom2.mesh.receiveShadow = true;
         boom2.geometry.computeBoundingBox();
         boom2.bbox = boom2.geometry.boundingBox;
         this.boom1 = boom1;

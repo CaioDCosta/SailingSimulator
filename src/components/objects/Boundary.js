@@ -1,4 +1,4 @@
-import { Group, PlaneGeometry, Mesh, MeshStandardMaterial, DoubleSide } from 'three';
+import { Group, PlaneGeometry, Mesh, MeshStandardMaterial, DoubleSide, TextureLoader } from 'three';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min';
 class Boundary extends Group {
     constructor(scene, targetSize, width, height) {
@@ -8,13 +8,18 @@ class Boundary extends Group {
         this.scene = scene;
 
         const longGeo = new PlaneGeometry(targetSize, (targetSize - height) / 2);
-        const boundaryMaterial = new MeshStandardMaterial({ color: 0x0010ff, side: DoubleSide });
+        const bumpTexture = new TextureLoader().load("/src/components/objects/res/water_normals.jpg");
+        const boundaryMaterial = new MeshStandardMaterial({ color: 0x0010ff, side: DoubleSide, bumpMap: bumpTexture });
         const shortGeo = new PlaneGeometry((targetSize - width) / 2, height);
 
         const long1 = new Mesh(longGeo, boundaryMaterial);
         const long2 = new Mesh(longGeo, boundaryMaterial);
         const short1 = new Mesh(shortGeo, boundaryMaterial);
         const short2 = new Mesh(shortGeo, boundaryMaterial);
+        long1.receiveShadow = true;
+        long2.receiveShadow = true;
+        short1.receiveShadow = true;
+        short2.receiveShadow = true;
 
         long1.rotation.x += Math.PI / 2;
         long2.rotation.x += Math.PI / 2;
@@ -30,7 +35,7 @@ class Boundary extends Group {
     }
 
     translate(x, z) {
-       
+
     }
 }
 
