@@ -100,8 +100,8 @@ class Train {
         // this.sX = 1 / (1 - Math.exp(-this.params.kappaX * this.depth));
         // this.sY = this.sX * (1 - Math.exp(-this.params.kappaY * this.depth));
 
-        this.translate(this.params.directionVector.x * this.params.speed / 100,
-            this.params.directionVector.z * this.params.speed / 100);
+        this.translate(this.params.directionVector.x * this.params.speed / 20,
+            this.params.directionVector.z * this.params.speed / 20);
     }
 }
 
@@ -116,7 +116,7 @@ class Water extends THREE.Group {
         this.scene = scene;
         this.previousTimeStamp = 0;
         this.chunks = chunks;
-        this.segsPerUnit = 2;
+        this.segsPerUnit = 1;
         let width = this.params.width, height = this.params.height;
         this.xSegs = this.params.width * this.segsPerUnit;
         this.zSegs = this.params.height * this.segsPerUnit;
@@ -215,11 +215,12 @@ class Water extends THREE.Group {
     generateNewTrain(index = -1) {
         let params = {};
 
+        // TODO more intelligent location choice
         params.trainWidth = Math.random() * (this.params.maxSize - this.params.minSize) + this.params.minSize;
         params.trainHeight = Math.random() * (this.params.maxSize - this.params.minSize) + this.params.minSize;
         params.xCenter = Math.random() * (this.params.width - 2 * params.trainWidth) - this.params.width / 2 + params.trainWidth;
         params.zCenter = Math.random() * (this.params.height - 2 * params.trainHeight) - this.params.height / 2 + params.trainHeight;
-        params.wavelength = this.params.medianWavelength * (Math.random() * 3 / 2 + .5);
+        params.wavelength = this.params.medianWavelength * (Math.random() * 3 / 2 + .5) * this.scene.state.windSpeed;
         params.direction = this.scene.state.windHeading;
 
         let train = new Train(this.scene, params);

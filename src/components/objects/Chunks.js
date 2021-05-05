@@ -5,7 +5,7 @@ class Chunks extends Group {
     constructor(scene) {
         super();
         this.params = scene.params.chunk;
-        this.boundary = new Boundary(scene, this.params.width * 3 + 500, this.params.width, this.params.height);
+        this.boundary = new Boundary(scene, 1000 - Math.min(scene.params.wave.width, scene.params.wave.height), scene.params.wave.width, scene.params.wave.height);
         this.water = new Water(scene, this, this.params.width, this.params.height);
         this.array = [];
         for (let r = -1; r <= 1; r++) {

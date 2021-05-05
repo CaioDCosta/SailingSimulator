@@ -10,6 +10,7 @@ import { WebGLRenderer, PerspectiveCamera, Vector3, Clock } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { OceanScene } from 'scenes';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
+import Stats from 'three/examples/jsm/libs/stats.module.js'
 
 // Initialize core ThreeJS components
 const camera = new PerspectiveCamera();
@@ -29,7 +30,7 @@ document.body.appendChild(canvas);
 
 const clock = new Clock();
 let delta = 0;
-const interval = 1 / 60; // Target 30 FPS
+const interval = 1 / 60; // Target 60 FPS
 let time = 0;
 
 const scene = new OceanScene(interval);
@@ -42,18 +43,24 @@ controls.minDistance = 4;
 controls.maxDistance = 1000;
 controls.update();
 
+const stats = new Stats();
+document.body.appendChild(stats.domElement);
+
 // Render loop
 const onAnimationFrameHandler = (timeStamp) => {
-    window.requestAnimationFrame(onAnimationFrameHandler);
     delta += clock.getDelta();
     if (delta > interval) {
         time += interval;
         controls.update();
         TWEEN.update(time * 1000);
+        stats.begin();
         renderer.render(scene, camera);
         scene.update && scene.update(interval);
+        stats.end();
+        stats.update();
         delta %= interval;
     }
+    window.requestAnimationFrame(onAnimationFrameHandler);
 };
 window.requestAnimationFrame(onAnimationFrameHandler);
 
