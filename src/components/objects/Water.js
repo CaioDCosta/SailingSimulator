@@ -20,6 +20,7 @@ class Train {
 
     getPos(x, z, time, vec) {
         let r = this.envelope(...this.toLocal(x, z));
+        if (Math.abs(r) < 0.05) return;
         let arg = this.params.directionVector.x * this.params.freq * x
             + this.params.directionVector.z * this.params.freq * z
             + this.params.phi * time;
@@ -47,9 +48,6 @@ class Train {
     }
 
     contains(x, z) {
-        if (this.params.id) {
-            debugger;
-        }
         let [u, v] = this.toLocal(x, z);
         return Math.abs(u) < this.params.trainWidth / 2 && Math.abs(v) < this.params.trainHeight / 2;
     }

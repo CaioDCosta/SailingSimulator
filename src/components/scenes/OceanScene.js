@@ -34,8 +34,8 @@ class OceanScene extends THREE.Scene {
             },
             wave: {
                 enabled: true,
-                width: 300,
-                height: 300,
+                width: 200,
+                height: 200,
                 minSize: 40,
                 maxSize: 60,
                 g: 9.8,
