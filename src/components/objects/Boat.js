@@ -1,6 +1,7 @@
 import { Group, Vector3 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { Sail } from 'objects';
+import { TWEEN } from 'three/examples/jsm/libs/tween.module.min';
 
 const path = require("path")
 
@@ -18,13 +19,14 @@ class Boat extends Group {
 
         this.name = 'boat';
         loader.load(path.resolve('/src/components/objects/res/boat.glb'), (gltf) => {
-            this.add(gltf.scene);            
+            this.add(gltf.scene);
         });
 
         this.sail = new Sail(this);
+        this.tween = new TWEEN.Tween(this.position).easing(TWEEN.Easing.Elastic.InOut);
 
         // Add self to parent's update list
-        scene.addToUpdateList(this);        
+        scene.addToUpdateList(this);
     }
 
     update(deltaT) {

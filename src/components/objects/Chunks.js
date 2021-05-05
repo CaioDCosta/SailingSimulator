@@ -32,10 +32,18 @@ class Chunks extends Group {
         return depth2 - depth1;
     }
 
-    getDepth(x, z) {
+    getYFromGeometry(x, z, geometry) {
         let X = Math.floor(x + this.params.width / 2);
         let Z = Math.floor(z + this.params.height / 2);
-        return Math.max(0.1, -this.array[1][1].land.geometry.attributes.position.getY(Z * (this.params.height + 1) + X));
+        return geometry.getAttribute('position').getY(X * (this.params.width + 1) + Z);
+    }
+
+    getDepth(x, z) {
+        return Math.max(0.1, -this.getYFromGeometry(x, z, this.array[1][1].land.geometry));
+    }
+
+    getWaterHeight(x, z) {
+        return this.getYFromGeometry(x, z, this.water.geometry);
     }
 
     translate(x, z) {

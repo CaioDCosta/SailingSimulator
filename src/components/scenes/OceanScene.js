@@ -2,8 +2,7 @@ import * as Dat from 'dat.gui';
 import * as THREE from 'three';
 import { Boat, Chunks } from 'objects';
 import { Sun } from 'lights';
-import { ArrowHelper } from 'three';
-import { AxesHelper } from 'three';
+import { Perlin } from 'utils';
 
 class OceanScene extends THREE.Scene {
     constructor(interval) {
@@ -187,6 +186,8 @@ class OceanScene extends THREE.Scene {
         for (const obj of updateList) {
             obj.update(deltaT);
         }
+        let time = this.state.time;
+        this.boat.tween.to({ y: this.chunks.getWaterHeight(0, 0) - 0.25 + Perlin.noise(time * 1.248, time * 3.456, time * 2.122, 0.05) / 10 }, this.params.interval).start(this.state.time);
         this.chunks.translate(-this.boat.velocity.x, -this.boat.velocity.z);
         this.state.time += deltaT;
     }
