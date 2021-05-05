@@ -2,91 +2,95 @@ import * as THREE from 'three';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min';
 import { Perlin } from 'utils';
 class Train {
-    constructor(scene, xCenter = 0, zCenter = 0, trainWidth = 50, trainHeight = 50, direction = 0, wavelength = 0, amplitude = undefined, fixed = false) {
-        this.params = scene.params.wave;
-        this.amplitudeFunction = (u, v) => this.noiseAmp(u, v) * this.standardAmp(v);
-        this.xCenter = xCenter;
-        this.zCenter = zCenter;
-        this.trainWidth = trainWidth;
-        this.trainHeight = trainHeight;
-        this.direction = direction;
+    constructor(scene, params) {
+
         this.scene = scene;
-        this.directionVector = new THREE.Vector3(Math.cos(direction), 0, Math.sin(direction));
+        this.params = params;
+        this.sceneParams = this.scene.params.wave;
+        if (!this.params.amplitude) this.params.amplitude = this.sceneParams.medianAmplitude / this.sceneParams.medianAmplitude * this.params.wavelength;
+        this.params.directionVector = new THREE.Vector3(Math.cos(params.direction), 0, Math.sin(params.direction));
+        this.depth = this.scene.params.chunk.seafloor.depth;
+        this.cumDepth = 0;
+        this.params.kappa = Math.PI * 2 / this.params.wavelength;
 
         this.ah = new THREE.ArrowHelper(this.directionVector, new THREE.Vector3(this.xCenter, 5, this.zCenter), 10);
         this.scene.add(this.ah);
-        this.id = this.params.id++;
 
-        this.fixed = fixed;
-
-        this.depth = this.scene.params.chunk.seafloor.depth;
-        this.cumDepth = 0;
-
-        this.wavelength = wavelength;
-        this.amplitude = amplitude || this.params.medianAmplitude / this.params.medianWavelength * this.wavelength;
-        this.kappa = Math.PI * 2 / this.wavelength;
     }
 
     getPos(x, z, time, vec) {
-        let r = this.amplitude * this.amplitudeFunction(...this.toLocal(x, z));
-        let arg = this.directionVector.x * this.freq * x + this.directionVector.z * this.freq * z + this.phi * time;
-        let mag = this.steepness * r * Math.cos(arg);
+        let r = this.envelope(...this.toLocal(x, z));
+        let arg = this.params.directionVector.x * this.params.freq * x
+            + this.params.directionVector.z * this.params.freq * z
+            + this.params.phi * time;
+        let mag = this.params.steepness * r * Math.cos(arg);
         let height = r * Math.sin(arg);
-        vec.x += mag * this.directionVector.x;
+        vec.x += mag * this.params.directionVector.x;
         vec.y += height;
-        vec.z += mag * this.directionVector.z;
+        vec.z += mag * this.params.directionVector.z;
     }
 
     toLocal(x, z) {
-        let xt = x - this.xCenter;
-        let zt = z - this.zCenter;
-        let u = xt * this.directionVector.x + zt * this.directionVector.z;
-        let v = xt * this.directionVector.z - zt * this.directionVector.x;
+        let cos = this.params.directionVector.x, sin = this.params.directionVector.z;
+        let xt = x - this.params.xCenter;
+        let zt = z - this.params.zCenter;
+        let u = xt * cos + zt * sin;
+        let v = xt * sin - zt * cos;
         return [u, v];
     }
 
     toWorld(u, v) {
-        let x = u * this.directionVector.x + v * this.directionVector.z + this.xCenter;
-        let z = u * this.directionVector.z - v * this.directionVector.x + this.zCenter;
+        let cos = this.params.directionVector.x, sin = this.params.directionVector.z;
+        let x = u * cos + v * sin + this.params.xCenter;
+        let z = u * sin - v * cos + this.params.zCenter;
         return [x, z];
     }
 
     contains(x, z) {
+        if (this.params.id) {
+            debugger;
+        }
         let [u, v] = this.toLocal(x, z);
-        return Math.abs(u) < this.trainWidth / 2 && Math.abs(v) < this.trainHeight / 2;
+        return Math.abs(u) < this.params.trainWidth / 2 && Math.abs(v) < this.params.trainHeight / 2;
     }
 
-    standardAmp(x) {
-        const params = this.params;
-        let s = Math.max(0, Math.min(1, params.s));
-        return Math.max(0, Math.min(s, 1 - x * x / (params.w * params.w)));
+    envelope(x, z) {
+        return this.sceneParams.waveHeightScaling * this.params.amplitude * this.xAmp(x) * this.zAmp(z);
     }
 
-    noiseAmp(x, z) {
-        let [u, v] = this.toLocal(x, z);
-        let p = (Perlin.noise(v, u, 1.234, this.params.freq) + 2) / 2;
-        return this.standardAmp(x) * p;
+    zAmp(z) {
+        let h = this.params.trainHeight * this.sceneParams.trainHeightScaling;
+        let f = (x) => -Math.exp(-(Math.abs(x) - h / 2));
+        // let f = (x) => -Math.abs(x);
+        if (Math.abs(z) < h / 2) return 1;
+        return 1 - f(z) + (z > h / 2 ? f(h / 2) : f(-h / 2));
+    }
+
+    xAmp(x) {
+        let noise = Perlin.noise(x, x, x, this.sceneParams.waveHeightFreq) / 2;
+        let w = this.params.trainWidth * this.sceneParams.trainWidthScaling;
+        let f = (x) => -Math.exp(-(Math.abs(x) - w / 2));
+        // let f = (x) => -Math.abs(x);
+        if (Math.abs(x) < w / 2) return noise;
+        return noise * (1 - f(x) + (x > w / 2 ? f(w / 2) : f(-w / 2)));
     }
 
     // Return true if we have exceeded the water bounds
     translate(x, z) {
-        if (this.fixed) return;
-        this.xCenter += x;
-        this.zCenter += z;
-        this.ah.position.set(this.xCenter, 5, this.zCenter);
-        return Math.abs(this.xCenter) + this.sizeX / 2 > this.params.width / 2
-            || Math.abs(this.zCenter) + this.sizeZ > this.params.height / 2;
+        if (this.params.fixed) return;
+        this.params.xCenter += x;
+        this.params.zCenter += z;
+        this.ah.position.set(this.params.xCenter, 5, this.params.zCenter);
+        return Math.abs(this.params.xCenter) + this.params.sizeX / 2 > this.params.trainWidth / 2
+            || Math.abs(this.params.zCenter) + this.params.sizeZ > this.params.trainHeight / 2;
     }
 
     update() {
-        this.direction = this.scene.state.windHeading;
-        this.directionVector.set(Math.cos(this.direction), 0, Math.sin(this.direction));
-
-        this.depth = Perlin.lerp(0.5, this.depth, this.scene.chunks.getDepth(this.xCenter, this.zCenter));
-        this.freq = Math.sqrt(this.params.g * this.kappa * Math.tanh(this.kappa * this.depth));
-        this.speed = this.freq * this.wavelength;
-        this.steepness = this.params.steepness / (this.amplitude * this.freq);
-        this.phi = this.speed * 2 / this.wavelength;
+        this.depth = Perlin.lerp(0.5, this.depth, this.scene.chunks.getDepth(this.params.xCenter, this.params.zCenter));
+        this.params.freq = Math.sqrt(this.sceneParams.g * this.params.kappa * Math.tanh(this.params.kappa * this.depth));
+        this.params.speed = this.params.freq * this.params.wavelength;
+        this.params.steepness = this.sceneParams.steepness / (this.params.amplitude * this.params.freq);
+        this.params.phi = this.params.speed * 2 / this.params.wavelength;
 
         // this.cumDepth += (this.kappa - this.kappaInf) * this.groupVelocity / 10;
         // this.gamma = Perlin.lerp(0.5, this.gamma, this.scene.chunks.getSlope(this.xCenter, this.zCenter, this.directionVector));
@@ -96,8 +100,8 @@ class Train {
         // this.sX = 1 / (1 - Math.exp(-this.params.kappaX * this.depth));
         // this.sY = this.sX * (1 - Math.exp(-this.params.kappaY * this.depth));
 
-        this.ah.setDirection(this.directionVector);
-        this.translate(this.directionVector.x * this.speed / 100, this.directionVector.z * this.speed / 100);
+        this.translate(this.params.directionVector.x * this.params.speed / 100,
+            this.params.directionVector.z * this.params.speed / 100);
     }
 }
 
@@ -121,8 +125,29 @@ class Water extends THREE.Group {
         this.mesh = new THREE.Mesh(this.geometry, this.material);
 
         this.trains = [];
+        let params1 = {
+            xCenter: 0,
+            zCenter: 0,
+            fixed: true,
+            trainWidth: width / 2,
+            trainHeight: height / 2,
+            direction: 0,
+            wavelength: 5,
+            amplitude: 1
+        }
+        let params2 = {
+            xCenter: 0,
+            zCenter: 0,
+            fixed: true,
+            trainWidth: width / 2,
+            trainHeight: height / 2,
+            direction: Math.PI / 2,
+            wavelength: 5,
+            amplitude: 1
+        }
         this.backgroundTrains = [
-            new Train(this.scene, 0, 0, width / 2, height / 2, this.scene.state.windHeading, 10, .5, true)
+            new Train(this.scene, params1),
+            new Train(this.scene, params2)
         ];
 
         for (let i = 0; i < this.params.numTrains; i++) {
@@ -188,15 +213,21 @@ class Water extends THREE.Group {
     }
 
     generateNewTrain(index = -1) {
-        let sizeX = Math.random() * (this.params.maxSize - this.params.minSize) + this.params.minSize;
-        let sizeZ = Math.random() * (this.params.maxSize - this.params.minSize) + this.params.minSize;
-        let xCenter = Math.random() * (this.params.width - 2 * sizeX) - this.params.width / 2 + sizeX;
-        let zCenter = Math.random() * (this.params.height - 2 * sizeZ) - this.params.height / 2 + sizeZ;
-        let wavelength = this.params.medianWavelength * (Math.random() * 3 / 2 + .5);
-        let train = new Train(this.scene, xCenter, zCenter, sizeX, sizeZ, this.scene.state.windHeading, wavelength);
+        let params = {};
+
+        params.trainWidth = Math.random() * (this.params.maxSize - this.params.minSize) + this.params.minSize;
+        params.trainHeight = Math.random() * (this.params.maxSize - this.params.minSize) + this.params.minSize;
+        params.xCenter = Math.random() * (this.params.width - 2 * params.trainWidth) - this.params.width / 2 + params.trainWidth;
+        params.zCenter = Math.random() * (this.params.height - 2 * params.trainHeight) - this.params.height / 2 + params.trainHeight;
+        params.wavelength = this.params.medianWavelength * (Math.random() * 3 / 2 + .5);
+        params.direction = this.scene.state.windHeading;
+
+        let train = new Train(this.scene, params);
         if (index < 0 || index >= this.trains.length) {
+            params.id = this.trains.length;
             this.trains.push(train);
         } else {
+            params.id = index;
             this.trains[index] = train;
         }
     }
