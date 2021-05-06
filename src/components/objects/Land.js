@@ -10,9 +10,20 @@ class Land extends Group {
         this.params = parent.params;
         this.islands = this.generateIslands(true);
         this.chunk = parent;
+
+        const colors = new Uint8Array(5);
+        for (let c = 0; c <= colors.length; c++) {
+            colors[c] = (c / colors.length) * 256;
+        }
+
+        const gradientMap = new THREE.DataTexture(colors, colors.length, 1, THREE.LuminanceFormat);
+        gradientMap.minFilter = THREE.NearestFilter;
+        gradientMap.magFilter = THREE.NearestFilter;
+        gradientMap.generateMipmaps = false;
+        this.material = new THREE.MeshToonMaterial({ color: 0x555555, side: THREE.DoubleSide, gradientMap: gradientMap });
+
         this.geometry = new THREE.PlaneBufferGeometry(this.params.width * this.params.scale,
             this.params.height * this.params.scale, this.params.width, this.params.height);
-        this.material = new THREE.MeshLambertMaterial({ color: 0x555555, side: THREE.DoubleSide });
         this.mesh = new THREE.Mesh(this.geometry, this.material);
         this.add(this.mesh);
 

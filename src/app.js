@@ -11,6 +11,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { OceanScene } from 'scenes';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
+import { OutlineEffect } from 'three/examples/jsm/effects/OutlineEffect.js';
 
 // Initialize core ThreeJS components
 const camera = new PerspectiveCamera(50, 1, 0.1, 2000);
@@ -51,6 +52,8 @@ controls.update();
 const stats = new Stats();
 document.body.appendChild(stats.domElement);
 
+const effect = new OutlineEffect(renderer);
+
 // Render loop
 const onAnimationFrameHandler = (timeStamp) => {
     delta += clock.getDelta();
@@ -59,7 +62,7 @@ const onAnimationFrameHandler = (timeStamp) => {
         controls.update();
         TWEEN.update(time * 1000);
         stats.begin();
-        renderer.render(scene, camera);
+        effect.render(scene, camera);
         scene.update && scene.update(interval);
         stats.end();
         stats.update();

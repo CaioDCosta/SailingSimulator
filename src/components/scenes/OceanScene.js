@@ -143,11 +143,11 @@ class OceanScene extends THREE.Scene {
 
         let lighting = this.state.gui.addFolder('Lighting');
         let updateLighting = () => this.sun.update();
-        lighting.add(this.params.lights, 'intensity', 0, 50);//.onChange(updateLighting);
-        lighting.addColor(this.params.lights, 'color');//.onChange(updateLighting);
-        lighting.add(this.params.lights, 'azimuth', 0, Math.PI / 2);//.onChange(updateLighting);
-        lighting.add(this.params.lights, 'zenith', 0, 2 * Math.PI);//.onChange(updateLighting);
-        lighting.add(this.params.lights, 'distance', 10, 1000);//.onChange(updateLighting);
+        lighting.add(this.params.lights, 'intensity', 0, 50).onChange(updateLighting);
+        lighting.addColor(this.params.lights, 'color').onChange(updateLighting);
+        lighting.add(this.params.lights, 'azimuth', 0, Math.PI / 2).onChange(updateLighting);
+        lighting.add(this.params.lights, 'zenith', 0, 2 * Math.PI).onChange(updateLighting);
+        lighting.add(this.params.lights, 'distance', 10, 1000).onChange(updateLighting);
 
         let seafloor = this.state.gui.addFolder('Seafloor');
         seafloor.add(this.params.chunk.seafloor, 'oct', 0, 10, 1);

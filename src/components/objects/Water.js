@@ -126,6 +126,18 @@ class Water extends THREE.Group {
         const bumpTexture = new THREE.TextureLoader().load("/src/components/objects/res/water_normals.png")
         bumpTexture.repeat = new THREE.Vector2(16, 16);
         bumpTexture.wrapS = bumpTexture.wrapT = THREE.RepeatWrapping;
+
+        const colors = new Uint8Array(5);
+        for (let c = 0; c <= colors.length; c++) {
+            colors[c] = (c / colors.length) * 256;
+        }
+
+        const gradientMap = new THREE.DataTexture(colors, colors.length, 1, THREE.LuminanceFormat);
+        gradientMap.minFilter = THREE.NearestFilter;
+        gradientMap.magFilter = THREE.NearestFilter;
+        gradientMap.generateMipmaps = false;
+        // this.material = new THREE.MeshToonMaterial({ color: 0x0010ff, side: THREE.FrontSide, bumpMap: bumpTexture, gradientMap: gradientMap });
+
         this.material = new THREE.MeshPhysicalMaterial({ color: 0x0010ff, side: THREE.FrontSide, bumpMap: bumpTexture, transparent: true });
         this.mesh = new THREE.Mesh(this.geometry, this.material);
 

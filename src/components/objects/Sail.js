@@ -144,7 +144,7 @@ class Sail extends Group {
         let sail = {};
         sail.geometry = new THREE.ParametricGeometry(this.getInitPosition, this.w, this.h);
         sail.geometry.dynamic = true;
-        sail.material = new THREE.MeshLambertMaterial({ color: 0xeeeeee, side: THREE.DoubleSide, flatShading: true });
+        sail.material = new THREE.MeshToonMaterial({ color: 0xeeeeee, side: THREE.DoubleSide });
         sail.mesh = new THREE.Mesh(sail.geometry, sail.material);
         sail.mesh.castShadow = true;
         sail.mesh.receiveShadow = true;
@@ -156,7 +156,7 @@ class Sail extends Group {
         mast.geometry.translate(0, mastHeight / 2, 0);
         mast.geometry.computeBoundingBox();
         mast.bbox = mast.geometry.boundingBox;
-        mast.material = new THREE.MeshStandardMaterial({ color: 0x603913 });
+        mast.material = new THREE.MeshToonMaterial({ color: 0x603913 });
         mast.mesh = new THREE.Mesh(mast.geometry, mast.material);
         mast.mesh.castShadow = true;
         mast.mesh.receiveShadow = true;
@@ -165,7 +165,7 @@ class Sail extends Group {
         let boom1 = {};
         boom1.geometry = new THREE.BoxGeometry(this.fabricLength, rs, rs);
         boom1.geometry.translate(0, sailOffset, rs);
-        boom1.material = new THREE.MeshStandardMaterial({ color: 0x603913 });
+        boom1.material = new THREE.MeshToonMaterial({ color: 0x603913 });
         boom1.mesh = new THREE.Mesh(boom1.geometry, boom1.material);
         boom1.mesh.castShadow = true;
         boom1.mesh.receiveShadow = true;
@@ -175,7 +175,7 @@ class Sail extends Group {
         let boom2 = {};
         boom2.geometry = new THREE.BoxGeometry(this.fabricLength, rs, rs);
         boom2.geometry.translate(0, sailOffset + this.fabricLength, rs);
-        boom2.material = new THREE.MeshStandardMaterial({ color: 0x603913 });
+        boom2.material = new THREE.MeshToonMaterial({ color: 0x603913 });
         boom2.mesh = new THREE.Mesh(boom2.geometry, boom2.material);
         boom2.mesh.castShadow = true;
         boom2.mesh.receiveShadow = true;

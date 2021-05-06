@@ -20,12 +20,12 @@ class Sun extends Group {
         this.hemi = new HemisphereLight();
         this.add(this.hemi);
 
-        this.ambi = new AmbientLight();
-        this.ambi.intensity = 0.2;
-        this.add(this.ambi);
+        // this.ambi = new AmbientLight();
+        // this.ambi.intensity = 0.2;
+        // this.add(this.ambi);
 
         this.sunLight = this.getDirectionalLight(450);
-
+        // this.sunLight.shadow.bias = 1e6;
         this.shadowLight = this.getDirectionalLight(25);
         this.shadowLight.shadow.bias = -1e-6;
         this.add(this.sunLight, this.shadowLight);
@@ -58,7 +58,8 @@ class Sun extends Group {
         });
         this.sun = new Mesh(geometry, material);
         this.add(this.sun);
-        scene.addToUpdateList(this);
+        // scene.addToUpdateList(this);
+        this.update();
     }
 
     getDirectionalLight(radius) {
