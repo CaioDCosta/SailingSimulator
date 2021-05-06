@@ -23,6 +23,7 @@ renderer.toneMappingExposure = 0.5;
 // Set up camera
 camera.position.set(6, 3, -10);
 camera.lookAt(new Vector3(0, 0, 0));
+camera.layers.enable(1);
 
 // Set up renderer, canvas, and minor CSS adjustments
 renderer.setPixelRatio(window.devicePixelRatio);

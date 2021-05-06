@@ -1,4 +1,5 @@
 import {
+    AmbientLight,
     SphereGeometry,
     ShaderMaterial,
     Mesh,
@@ -18,8 +19,15 @@ class Sun extends Group {
         this.hemi = new HemisphereLight();
         this.add(this.hemi);
 
+        this.ambi = new AmbientLight();
+        this.ambi.intensity = 0.2;
+        this.add(this.ambi);
+
         this.sunLight = this.getSpotlight();
         this.shadowLight = this.getSpotlight();
+        this.shadowLight.layers.set(1);
+        this.shadowLight.shadow.camera.layers.set(1);
+        this.shadowLight.shadow.bias = -1e-6;
         this.add(this.sunLight, this.shadowLight);
 
         const geometry = new SphereGeometry(20, 32, 16);
