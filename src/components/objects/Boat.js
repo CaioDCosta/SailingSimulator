@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { Sail } from 'objects';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min';
 
-const path = require("path")
+const path = require('path');
 
 class Boat extends Group {
     constructor(scene) {
@@ -18,9 +18,19 @@ class Boat extends Group {
         this.scene = scene;
 
         this.name = 'boat';
-        loader.load(path.resolve('/src/components/objects/res/boat.glb'), (gltf) => {
+        loader.load(
+            path.resolve('/src/components/objects/res/boat.glb'),
+            (gltf) => {
+                gltf.scene.traverse((node) => {
+                    if (node.isMesh) {
+                        node.castShadow = true;
+                        node.receiveShadow = true;
+                        node.geometry.computeVertexNormals();
+                    }
+                });
             this.add(gltf.scene);
-        });
+            }
+        );
 
         this.sail = new Sail(this);
         this.tween = new TWEEN.Tween(this.position).easing(TWEEN.Easing.Elastic.InOut);

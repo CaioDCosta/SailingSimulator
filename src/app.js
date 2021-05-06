@@ -10,7 +10,7 @@ import { WebGLRenderer, PerspectiveCamera, Vector3, Clock, PCFSoftShadowMap, ACE
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { OceanScene } from 'scenes';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min.js';
-import Stats from 'three/examples/jsm/libs/stats.module.js'
+import Stats from 'three/examples/jsm/libs/stats.module.js';
 
 // Initialize core ThreeJS components
 const camera = new PerspectiveCamera(50, 1, 0.1, 2000);

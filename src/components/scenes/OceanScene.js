@@ -29,13 +29,15 @@ class OceanScene extends THREE.Scene {
                 intensity: 2,
                 color: 0xffffff,
                 azimuth: Math.PI / 2,
+                zenith: Math.PI / 2,
                 distance: 500,
+                focus: 1,
             },
             boat: {
                 mass: 1,
                 forceMultiplier: 1,
                 velocityMultiplier: 2,
-                damping: 0.5
+                damping: 0.5,
             },
             wave: {
                 enabled: true,
@@ -44,27 +46,27 @@ class OceanScene extends THREE.Scene {
                 minSize: 40,
                 maxSize: 60,
                 g: 9.8,
-                trainWidthScaling: .7,
-                trainHeightScaling: .7,
-                waveHeightScaling: .3,
-                waveHeightFreq: .1,
+                trainWidthScaling: 0.7,
+                trainHeightScaling: 0.7,
+                waveHeightScaling: 0.3,
+                waveHeightFreq: 0.1,
                 kappa0: 1,
                 kappaX: 1,
                 kappaY: 1,
                 medianWavelength: 5,
-                medianAmplitude: .5,
+                medianAmplitude: 0.5,
                 steepness: 0.5,
-                numTrains: 1
+                numTrains: 1,
             },
             chunk: {
                 seafloor: {
                     oct: 3,
                     gain: 1,
                     lac: 1.3,
-                    init_amp: .5,
-                    init_freq: .01,
+                    init_amp: 0.5,
+                    init_freq: 0.01,
                     amp: 20,
-                    depth: 30
+                    depth: 30,
                 },
                 island: {
                     minIslandsPerChunk: 0,
@@ -76,37 +78,38 @@ class OceanScene extends THREE.Scene {
                     oct: 6,
                     gain: 1.2,
                     lac: 1.8,
-                    init_amp: .3,
-                    init_freq: .05,
+                    init_amp: 0.3,
+                    init_freq: 0.05,
                     amp: 3,
                     thresholdMin: 10,
                     thresholdMax: 40,
                 },
                 height: 200,
                 width: 200,
-                scale: 1
+                scale: 1,
             },
-        }
+        };
 
         // Skybox from https://doc.babylonjs.com/toolsAndResources/assetLibraries/availableTextures#cubetextures
-        const fnames = ['px', 'nx', 'py', 'ny', 'pz', 'nz'].map(x => `/src/components/objects/res/TropicalSunnyDay_${x}.jpg`);
+        const fnames = ['px', 'nx', 'py', 'ny', 'pz', 'nz'].map(
+            (x) => `/src/components/objects/res/TropicalSunnyDay_${x}.jpg`
+        );
         const skybox = new THREE.CubeTextureLoader().load(fnames);
 
         // Set background to a nice color
         let sceneColor = 0x979997;
         this.background = skybox;
 
-        // Add meshes to scene    
-        const boat = new Boat(this);
-        this.boat = boat;
-        const sun = new Sun(this);
+        // Add meshes to scene
+        this.boat = new Boat(this);
+        this.sun = new Sun(this);
         this.chunks = new Chunks(this);
 
         let near = 10;
         let far = this.params.chunk.width * 2;
         this.fog = new THREE.Fog(sceneColor, near, far);
-        this.add(sun, this.chunks);
-        this.attach(boat);
+        this.add(this.sun, this.chunks);
+        this.attach(this.boat);
 
         // this.ah = new ArrowHelper(this.windDirection, new THREE.Vector3(0, 1, 0), 20);
         // this.add(this.ah);
@@ -121,40 +124,44 @@ class OceanScene extends THREE.Scene {
         this.state.gui.add(this.params.boat, 'forceMultiplier', 1, 100);
         this.state.gui.add(this.params.boat, 'velocityMultiplier', 0, 3);
         this.state.gui.add(this.params.boat, 'damping', 0, 1);
-        this.state.gui.add(this.params, 'fog').onChange(
-            (showFog) => { this.fog.near = showFog ? near : 20000; this.fog.far = showFog ? far : 20000 });
-        let wave = this.state.gui.addFolder("Wave");
-        wave.add(this.params.wave, "medianWavelength", 0.1, 50);
-        wave.add(this.params.wave, "medianAmplitude", 0.1, 5);
-        wave.add(this.params.wave, "steepness", 0, 1);
-        wave.add(this.params.wave, "g", 1, 40);
-        wave.add(this.params.wave, "trainWidthScaling", 0, 1);
-        wave.add(this.params.wave, "trainHeightScaling", 0, 1);
-        wave.add(this.params.wave, "waveHeightScaling", 0, 3);
-        wave.add(this.params.wave, "waveHeightFreq", 0, 1);
-        wave.add(this.params.wave, "minSize", 0, 100);
-        wave.add(this.params.wave, "maxSize", 0, 100);
-        wave.add(this.params.wave, "numTrains", 0, 5, 1);
+        this.state.gui.add(this.params, 'fog').onChange((showFog) => {
+            this.fog.near = showFog ? near : 20000;
+            this.fog.far = showFog ? far : 20000;
+        });
+        let wave = this.state.gui.addFolder('Wave');
+        wave.add(this.params.wave, 'medianWavelength', 0.1, 50);
+        wave.add(this.params.wave, 'medianAmplitude', 0.1, 5);
+        wave.add(this.params.wave, 'steepness', 0, 1);
+        wave.add(this.params.wave, 'g', 1, 40);
+        wave.add(this.params.wave, 'trainWidthScaling', 0, 1);
+        wave.add(this.params.wave, 'trainHeightScaling', 0, 1);
+        wave.add(this.params.wave, 'waveHeightScaling', 0, 3);
+        wave.add(this.params.wave, 'waveHeightFreq', 0, 1);
+        wave.add(this.params.wave, 'minSize', 0, 100);
+        wave.add(this.params.wave, 'maxSize', 0, 100);
+        wave.add(this.params.wave, 'numTrains', 0, 5, 1);
 
-        let lighting = this.state.gui.addFolder("Lighting");
-        lighting.add(this.params.lights, "intensity", 0, 50);
-        lighting.addColor(this.params.lights, "color");
-        lighting.add(this.params.lights, "azimuth", 0, Math.PI);
-        lighting.add(this.params.lights, "distance", 0, 1000);
+        let lighting = this.state.gui.addFolder('Lighting');
+        let updateLighting = () => this.sun.update();
+        lighting.add(this.params.lights, 'intensity', 0, 50);//.onChange(updateLighting);
+        lighting.addColor(this.params.lights, 'color');//.onChange(updateLighting);
+        lighting.add(this.params.lights, 'azimuth', 0, Math.PI / 2);//.onChange(updateLighting);
+        lighting.add(this.params.lights, 'zenith', 0, 2 * Math.PI);//.onChange(updateLighting);
+        lighting.add(this.params.lights, 'distance', 10, 1000);//.onChange(updateLighting);
 
-        let seafloor = this.state.gui.addFolder("Seafloor");
+        let seafloor = this.state.gui.addFolder('Seafloor');
         seafloor.add(this.params.chunk.seafloor, 'oct', 0, 10, 1);
         seafloor.add(this.params.chunk.seafloor, 'gain', 0, 5);
         seafloor.add(this.params.chunk.seafloor, 'lac', 0, 5);
         seafloor.add(this.params.chunk.seafloor, 'init_amp', 0, 1);
-        seafloor.add(this.params.chunk.seafloor, 'init_freq', 0, .1);
+        seafloor.add(this.params.chunk.seafloor, 'init_freq', 0, 0.1);
         seafloor.add(this.params.chunk.seafloor, 'amp', 0, 50);
         seafloor.add(this.params.chunk.seafloor, 'depth', 0, 100);
 
         let updateIslands = (arg) => {
             this.chunks.update(arg);
-        }
-        let island = this.state.gui.addFolder("Island");
+        };
+        let island = this.state.gui.addFolder('Island');
         island.add(this.params.chunk.island, 'minIslandsPerChunk', 0, 5, 1).onChange(() => updateIslands('new'));
         island.add(this.params.chunk.island, 'maxIslandsPerChunk', 0, 5, 1).onChange(() => updateIslands('new'));
         island.add(this.params.chunk.island, 'height', 0, 100).onChange(() => updateIslands('peak'));
@@ -166,11 +173,9 @@ class OceanScene extends THREE.Scene {
         island.add(this.params.chunk.island, 'lac', 0, 5).onChange(() => updateIslands());
         island.add(this.params.chunk.island, 'init_amp', 0, 1).onChange(() => updateIslands());
         island.add(this.params.chunk.island, 'init_freq', 0, 1).onChange(() => updateIslands());
-        island.add(this.params.chunk.island, 'amp', 0, 20).onChange(x => updateIslands());
+        island.add(this.params.chunk.island, 'amp', 0, 20).onChange((x) => updateIslands());
         island.add(this.params.chunk.island, 'thresholdMin', 0, 100);
         island.add(this.params.chunk.island, 'thresholdMax', 0, 100);
-
-
     }
 
     addToUpdateList(object) {
@@ -187,7 +192,8 @@ class OceanScene extends THREE.Scene {
             obj.update(deltaT);
         }
         let time = this.state.time;
-        this.boat.tween.to({ y: this.chunks.getWaterHeight(0, 0) - 0.25 + Perlin.noise(time * 1.248, time * 3.456, time * 2.122, 0.05) / 10 }, this.params.interval).start(this.state.time);
+        let offset = Perlin.noise(time * 1.248, time * 3.456, time * 2.122, 0.05) / 10 - .25;
+        this.boat.tween.to({ y: this.chunks.getWaterHeight(0, 0) + offset }, this.params.interval).start(this.state.time);
         this.chunks.translate(-this.boat.velocity.x, -this.boat.velocity.z);
         this.state.time += deltaT;
     }
