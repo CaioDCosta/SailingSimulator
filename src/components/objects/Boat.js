@@ -23,22 +23,22 @@ class Boat extends Group {
             (gltf) => {
                 gltf.scene.traverse((node) => {
                     if (node.isMesh) {
-                        node.layers.set(1);
+                        node.layers.set(2);
                         node.castShadow = true;
                         node.receiveShadow = true;
                         node.geometry.computeVertexNormals();
                     }
                 });
-                gltf.scene.layers.set(1);
+                gltf.scene.layers.set(2);
                 this.add(gltf.scene);
             }
         );
 
         this.sail = new Sail(this);
         this.tween = new TWEEN.Tween(this.position).easing(TWEEN.Easing.Elastic.InOut);
-        this.layers.set(1); // Shadow layer
+        this.layers.set(2); // Shadow layer
         this.traverse((obj) => {
-            obj.layers.set(1);
+            obj.layers.set(2);
         });
         // Add self to parent's update list
         scene.addToUpdateList(this);

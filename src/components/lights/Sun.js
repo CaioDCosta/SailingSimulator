@@ -1,3 +1,4 @@
+import { CameraHelper } from 'three';
 import {
     AmbientLight,
     SphereGeometry,
@@ -6,7 +7,7 @@ import {
     AdditiveBlending,
     Color,
     Group,
-    SpotLight,
+    DirectionalLight,
     HemisphereLight,
 } from 'three';
 
@@ -23,10 +24,9 @@ class Sun extends Group {
         this.ambi.intensity = 0.2;
         this.add(this.ambi);
 
-        this.sunLight = this.getSpotlight();
-        this.shadowLight = this.getSpotlight();
-        this.shadowLight.layers.set(1);
-        this.shadowLight.shadow.camera.layers.set(1);
+        this.sunLight = this.getDirectionalLight(450);
+
+        this.shadowLight = this.getDirectionalLight(25);
         this.shadowLight.shadow.bias = -1e-6;
         this.add(this.sunLight, this.shadowLight);
 
@@ -61,11 +61,17 @@ class Sun extends Group {
         scene.addToUpdateList(this);
     }
 
-    getSpotlight() {
-        const light = new SpotLight(0xffffff);
+    getDirectionalLight(radius) {
+        const light = new DirectionalLight(0xffffff);
         light.castShadow = true;
         light.shadow.mapSize.set(2048, 2048);
         light.shadow.camera.far = 1500;
+        light.shadow.camera.near = .1;
+        light.shadow.camera.right = radius;
+        light.shadow.camera.left = -radius;
+        light.shadow.camera.top = radius;
+        light.shadow.camera.bottom = -radius;
+        light.shadow.camera.updateProjectionMatrix();
         return light;
     }
 
@@ -77,14 +83,13 @@ class Sun extends Group {
         );
         this.uniforms.color.value.setHex(this.params.color);
 
-        this.sunLight.intensity = this.params.intensity / 2;
+        this.sunLight.intensity = this.params.intensity;
         this.sunLight.color.setHex(this.params.color);
         this.sunLight.position.copy(this.sun.position);
 
-        this.shadowLight.intensity = this.params.intensity / 2;
+        this.shadowLight.intensity = this.params.intensity / 18;
         this.shadowLight.color.setHex(this.params.color);
         this.shadowLight.position.copy(this.sun.position);
-        this.shadowLight.shadow.focus = Math.min(1, 5 / this.params.distance);
     }
 }
 
