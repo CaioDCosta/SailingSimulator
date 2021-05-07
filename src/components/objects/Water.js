@@ -165,9 +165,9 @@ class Water extends THREE.Group {
         gradientMap.minFilter = THREE.NearestFilter;
         gradientMap.magFilter = THREE.NearestFilter;
         gradientMap.generateMipmaps = false;
-        this.material = new THREE.MeshToonMaterial({ color: 0x0010ff, side: THREE.FrontSide, bumpMap: bumpTexture, gradientMap: gradientMap });
+        this.material = new THREE.MeshToonMaterial({ color: 0x0010ff, side: THREE.FrontSide, bumpMap: bumpTexture, gradientMap: gradientMap, transparent: true });
 
-        // this.material = new THREE.MeshPhysicalMaterial({ color: 0x0010ff, side: THREE.FrontSide, bumpMap: bumpTexture, transparent: true });
+        // this.material = new THREE.MeshPhysicalMaterial({ transmission: 0.3, ior: 1, opacity: 1, color: 0x0010ff, side: THREE.FrontSide, bumpMap: bumpTexture, transparent: true });
         this.mesh = new THREE.Mesh(this.geometry, this.material);
 
         this.trains = [];

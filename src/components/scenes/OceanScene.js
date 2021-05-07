@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { Boat, Chunks } from 'objects';
 import { Sun } from 'lights';
 import { Perlin } from 'utils';
+import { TextureLoader } from 'three/build/three.module';
 
 class OceanScene extends THREE.Scene {
     constructor(interval) {
@@ -90,20 +91,20 @@ class OceanScene extends THREE.Scene {
             },
         };
 
-        // Skybox from https://doc.babylonjs.com/toolsAndResources/assetLibraries/availableTextures#cubetextures
-        const fnames = ['px', 'nx', 'py', 'ny', 'pz', 'nz'].map(
-            (x) => `/src/components/objects/res/TropicalSunnyDay_${x}.jpg`
-        );
-        const skybox = new THREE.CubeTextureLoader().load(fnames);
+        let textureEquirec = new THREE.TextureLoader().load('/src/components/objects/res/ToonEquirectangular.png');
+        textureEquirec.mapping = THREE.EquirectangularReflectionMapping;
+        textureEquirec.encoding = THREE.sRGBEncoding;
+
+        this.background = textureEquirec;
 
         // Set background to a nice color
-        let sceneColor = 0x979997;
-        this.background = skybox;
+        let sceneColor = 0x8e8e8e;
 
         // Add meshes to scene
         this.boat = new Boat(this);
         this.sun = new Sun(this);
         this.chunks = new Chunks(this);
+        // this.chunks.water.material.envMap = textureEquirec;
 
         let near = 10;
         let far = this.params.chunk.width * 2;
