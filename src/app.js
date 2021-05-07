@@ -14,7 +14,7 @@ import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { OutlineEffect } from 'three/examples/jsm/effects/OutlineEffect.js';
 
 // Initialize core ThreeJS components
-const camera = new PerspectiveCamera(50, 1, 0.1, 2000);
+const camera = new PerspectiveCamera(50, 1, 0.1, 5000);
 const renderer = new WebGLRenderer({ antialias: true });
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = PCFSoftShadowMap;

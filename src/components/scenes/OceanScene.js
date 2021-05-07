@@ -31,7 +31,7 @@ class OceanScene extends THREE.Scene {
                 color: 0xffb400,
                 azimuth: 0.05,
                 zenith: Math.PI / 4,
-                distance: 500,
+                distance: 5000,
                 focus: 1,
             },
             boat: {
@@ -146,7 +146,6 @@ class OceanScene extends THREE.Scene {
         lighting.addColor(this.params.lights, 'color').onChange(updateLighting);
         lighting.add(this.params.lights, 'azimuth', 0, Math.PI / 2).onChange(updateLighting);
         lighting.add(this.params.lights, 'zenith', 0, 2 * Math.PI).onChange(updateLighting);
-        lighting.add(this.params.lights, 'distance', 10, 1000).onChange(updateLighting);
 
         let seafloor = this.state.gui.addFolder('Seafloor');
         seafloor.add(this.params.chunk.seafloor, 'oct', 0, 10, 1);

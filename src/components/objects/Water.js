@@ -165,6 +165,7 @@ class Water extends THREE.Group {
         this.zSegs = this.params.height * this.segsPerUnit;
         this.prevHeading = this.scene.state.windHeading;
         this.geometry = new THREE.PlaneBufferGeometry(width, height, this.xSegs, this.zSegs);
+        this.geometry.attributes.position.usage = THREE.DynamicDrawUsage;
         const loader = new THREE.TextureLoader();
         const bumpTexture = loader.load(TEXTURE);
         bumpTexture.repeat = new THREE.Vector2(16, 16);
@@ -188,13 +189,14 @@ class Water extends THREE.Group {
         //     blending: THREE.AdditiveBlending,
         //     transparent: true,
         // });
+
         const envMap = loader.load(ENVMAP);
         this.material = new THREE.MeshPhysicalMaterial({
             clearcoat: 1,
             clearcoatRoughness: 0.1,
-            transmission: .2,
+            transmission: .4,
             ior: .1,
-            reflectivity: 1,
+            reflectivity: .7,
             opacity: 1,
             color: 0x0010ff,
             side: THREE.FrontSide,

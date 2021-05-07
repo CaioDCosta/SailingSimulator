@@ -25,9 +25,9 @@ class Boundary extends Group {
         const boundaryMaterial = new MeshPhysicalMaterial({
             clearcoat: 1,
             clearcoatRoughness: 0.1,
-            transmission: .2,
+            transmission: .4,
             ior: .1,
-            reflectivity: 1,
+            reflectivity: .7,
             opacity: 1,
             color: 0x0010ff,
             side: FrontSide,

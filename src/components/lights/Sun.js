@@ -8,6 +8,7 @@ import {
     Color,
     Group,
     DirectionalLight,
+    SpotLight,
     HemisphereLight,
 } from 'three';
 
@@ -30,7 +31,7 @@ class Sun extends Group {
         this.shadowLight.shadow.bias = -1e-6;
         this.add(this.sunLight, this.shadowLight);
 
-        const geometry = new SphereGeometry(20, 32, 16);
+        const geometry = new SphereGeometry(100, 32, 16);
         // Adapted from http://stemkoski.github.io/Three.js/Shader-Halo.html
         const sunVertex = `
             varying vec3 vNormal;
@@ -54,6 +55,7 @@ class Sun extends Group {
             vertexShader: sunVertex,
             fragmentShader: sunFragment,
             blending: AdditiveBlending,
+            fog: false,
             transparent: true,
         });
         this.sun = new Mesh(geometry, material);
@@ -67,7 +69,7 @@ class Sun extends Group {
         const light = new DirectionalLight(0xffffff);
         light.castShadow = true;
         light.shadow.mapSize.set(2048, 2048);
-        light.shadow.camera.far = 1500;
+        light.shadow.camera.far = 10000;
         light.shadow.camera.near = .1;
         light.shadow.camera.right = radius;
         light.shadow.camera.left = -radius;
