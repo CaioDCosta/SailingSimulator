@@ -19,10 +19,11 @@ class Train {
     }
 
     getPos(x, z, time, vec) {
-        let r = this.envelope(...this.toLocal(x, z));
+        let [u, v] = this.toLocal(x, z);
+        let r = this.envelope(u, v);
         if (Math.abs(r) < 0.05) return;
-        let arg = this.params.directionVector.x * this.params.freq * x
-            + this.params.directionVector.z * this.params.freq * z
+        let arg = this.params.directionVector.x * this.params.freq * u
+            + this.params.directionVector.z * this.params.freq * v
             + this.params.phi * (time + this.timeOffset);
         let mag = this.params.steepness * r * Math.cos(arg);
         let height = r * Math.sin(arg);
@@ -132,9 +133,9 @@ class Water extends THREE.Group {
         gradientMap.minFilter = THREE.NearestFilter;
         gradientMap.magFilter = THREE.NearestFilter;
         gradientMap.generateMipmaps = false;
-        // this.material = new THREE.MeshToonMaterial({ color: 0x0010ff, side: THREE.FrontSide, bumpMap: bumpTexture, gradientMap: gradientMap });
+        this.material = new THREE.MeshToonMaterial({ color: 0x0010ff, side: THREE.FrontSide, bumpMap: bumpTexture, gradientMap: gradientMap });
 
-        this.material = new THREE.MeshPhysicalMaterial({ color: 0x0010ff, side: THREE.FrontSide, bumpMap: bumpTexture, transparent: true });
+        // this.material = new THREE.MeshPhysicalMaterial({ color: 0x0010ff, side: THREE.FrontSide, bumpMap: bumpTexture, transparent: true });
         this.mesh = new THREE.Mesh(this.geometry, this.material);
 
         this.trains = [];
