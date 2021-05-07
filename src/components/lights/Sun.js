@@ -59,6 +59,7 @@ class Sun extends Group {
         this.sun = new Mesh(geometry, material);
         this.add(this.sun);
         // scene.addToUpdateList(this);
+        this.traverse((obj) => obj.name = 'sun');
         this.update();
     }
 
