@@ -57,20 +57,16 @@ class Train {
     }
 
     zAmp(z) {
-        let h = this.params.trainHeight * this.sceneParams.trainHeightScaling;
-        let f = (x) => -Math.exp(-(Math.abs(x) - h / 2));
-        // let f = (x) => -Math.abs(x);
-        if (Math.abs(z) < h / 2) return 1;
-        return 1 - f(z) + (z > h / 2 ? f(h / 2) : f(-h / 2));
+        let h = this.params.trainHeight / 2;
+        if (Math.abs(z) > h) return 0;
+        return 1 - Math.exp(Math.abs(z) - h);
     }
 
     xAmp(x) {
         let noise = Perlin.noise(x, x, x, this.sceneParams.waveHeightFreq) / 2;
-        let w = this.params.trainWidth * this.sceneParams.trainWidthScaling;
-        let f = (x) => -Math.exp(-(Math.abs(x) - w / 2));
-        // let f = (x) => -Math.abs(x);
-        if (Math.abs(x) < w / 2) return noise;
-        return noise * (1 - f(x) + (x > w / 2 ? f(w / 2) : f(-w / 2)));
+        let w = this.params.trainWidth / 2;
+        if (Math.abs(x) > w) return 0;
+        return noise * (1 - Math.exp(Math.abs(x) - w));
     }
 
     // Return true if we have exceeded the water bounds
