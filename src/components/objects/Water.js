@@ -8,7 +8,7 @@ class Train {
         this.scene = scene;
         this.params = params;
         this.sceneParams = this.scene.params.wave;
-        if (!this.params.amplitude) this.params.amplitude = this.sceneParams.medianWavelength / this.sceneParams.medianAmplitude * this.params.wavelength;
+        if (!this.params.amplitude) this.params.amplitude = this.sceneParams.medianAmplitude / this.sceneParams.medianWavelength * this.params.wavelength;
         this.params.directionVector = new THREE.Vector3(Math.cos(params.direction), 0, Math.sin(params.direction));
         this.depth = this.scene.params.chunk.seafloor.depth;
         this.cumDepth = 0;
