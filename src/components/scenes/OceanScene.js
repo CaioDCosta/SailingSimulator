@@ -58,6 +58,7 @@ class OceanScene extends THREE.Scene {
                 medianAmplitude: 0.5,
                 steepness: 0.5,
                 numTrains: 1,
+                lambda: 1,
             },
             chunk: {
                 seafloor: {
@@ -141,6 +142,7 @@ class OceanScene extends THREE.Scene {
         wave.add(this.params.wave, 'minSize', 0, 100);
         wave.add(this.params.wave, 'maxSize', 0, 100);
         wave.add(this.params.wave, 'numTrains', 0, 5, 1);
+        wave.add(this.params.wave, 'lambda', 0, 2);
 
         let lighting = this.state.gui.addFolder('Lighting');
         let updateLighting = () => this.sun.update();

@@ -38,13 +38,14 @@ class Train {
 
     }
 
-    getPos(x, z, time, vec) {
+    getPos(x, z, time, vec, y) {
         let [u, v] = this.toLocal(x, z);
         let r = this.envelope(u, v);
         if (Math.abs(r) < 0.05) return;
         let arg = this.params.directionVector.x * this.params.freq * u
             + this.params.directionVector.z * this.params.freq * v
-            + this.params.phi * (time + this.timeOffset);
+            + this.params.phi * (time + this.timeOffset)
+            - this.sceneParams.lambda * y;
         let mag = this.params.steepness * r * Math.cos(arg);
         let height = r * Math.sin(arg);
         vec.x += mag * this.params.directionVector.x;
@@ -264,13 +265,14 @@ class Water extends THREE.Group {
             for (let v = 0; v <= this.zSegs; v += 1) {
                 let i = this.index(u, v);
                 let [x, z] = this.getRestingPosFromIndex(u, v);
+                let y = this.geometry.getAttribute('position').getY(i);
                 vec.set(0, 0, 0);
                 for (let train of this.backgroundTrains) {
-                    train.getPos(x, z, this.time, vec);
+                    train.getPos(x, z, this.time, vec, y);
                 }
                 for (let train of this.trains) {
                     if (train.contains(x, z)) {
-                        train.getPos(x, z, this.time, vec);
+                        train.getPos(x, z, this.time, vec, y);
                     }
                 }
                 this.geometry.attributes.position.setXYZ(i, x + vec.x, vec.y, z + vec.z);
