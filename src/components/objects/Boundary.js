@@ -1,4 +1,4 @@
-import { Group, PlaneGeometry, Mesh, LuminanceFormat, FrontSide, TextureLoader, DataTexture, NearestFilter, MeshToonMaterial } from 'three';
+import { Group, PlaneGeometry, Mesh, LuminanceFormat, FrontSide, TextureLoader, DataTexture, NearestFilter, MeshPhysicalMaterial } from 'three';
 class Boundary extends Group {
     constructor(scene, targetSize, width, height) {
         super();
@@ -17,7 +17,8 @@ class Boundary extends Group {
         gradientMap.minFilter = NearestFilter;
         gradientMap.magFilter = NearestFilter;
         gradientMap.generateMipmaps = false;
-        const boundaryMaterial = new MeshToonMaterial({ color: 0x0010ff, side: FrontSide, bumpMap: bumpTexture, gradientMap: gradientMap });
+        // const boundaryMaterial = new MeshToonMaterial({ color: 0x0010ff, side: FrontSide, bumpMap: bumpTexture, gradientMap: gradientMap });
+        const boundaryMaterial = new MeshPhysicalMaterial({ transmission: 0.3, ior: 1, opacity: 1, color: 0x0010ff, side: FrontSide, bumpMap: bumpTexture, transparent: true });
         const shortGeo = new PlaneGeometry((targetSize - width) / 2, height);
 
         const long1 = new Mesh(longGeo, boundaryMaterial);

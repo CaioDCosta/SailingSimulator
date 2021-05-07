@@ -144,7 +144,10 @@ class Sail extends Group {
         let sail = {};
         sail.geometry = new THREE.ParametricGeometry(this.getInitPosition, this.w, this.h);
         sail.geometry.dynamic = true;
-        sail.material = new THREE.MeshToonMaterial({ color: 0xeeeeee, side: THREE.DoubleSide });
+        // const texture = new THREE.TextureLoader().load('/src/components/objects/res/tiger.png');
+        // texture.repeat.set(2, 2);
+        // texture.offset.set(-.5, -.5);
+        sail.material = new THREE.MeshToonMaterial({ color: 0xeeeeee, side: THREE.DoubleSide, transparent: true });
         sail.mesh = new THREE.Mesh(sail.geometry, sail.material);
         sail.mesh.castShadow = true;
         sail.mesh.receiveShadow = true;

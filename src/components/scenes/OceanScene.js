@@ -28,7 +28,7 @@ class OceanScene extends THREE.Scene {
             fog: true,
             lights: {
                 intensity: 2,
-                color: 0xffffff,
+                color: 0xffb400,
                 azimuth: Math.PI / 2,
                 zenith: Math.PI / 2,
                 distance: 500,
@@ -47,7 +47,7 @@ class OceanScene extends THREE.Scene {
                 minSize: 40,
                 maxSize: 60,
                 g: 9.8,
-                waveHeightScaling: 0.5,
+                waveHeightScaling: 1,
                 waveHeightFreq: 0.1,
                 kappa0: 1,
                 kappaX: 1,
