@@ -47,9 +47,7 @@ class OceanScene extends THREE.Scene {
                 minSize: 40,
                 maxSize: 60,
                 g: 9.8,
-                trainWidthScaling: 0.7,
-                trainHeightScaling: 0.7,
-                waveHeightScaling: 0.3,
+                waveHeightScaling: 0.5,
                 waveHeightFreq: 0.1,
                 kappa0: 1,
                 kappaX: 1,
@@ -135,8 +133,6 @@ class OceanScene extends THREE.Scene {
         wave.add(this.params.wave, 'medianAmplitude', 0.1, 5);
         wave.add(this.params.wave, 'steepness', 0, 1);
         wave.add(this.params.wave, 'g', 1, 40);
-        wave.add(this.params.wave, 'trainWidthScaling', 0, 1);
-        wave.add(this.params.wave, 'trainHeightScaling', 0, 1);
         wave.add(this.params.wave, 'waveHeightScaling', 0, 3);
         wave.add(this.params.wave, 'waveHeightFreq', 0, 1);
         wave.add(this.params.wave, 'minSize', 0, 100);

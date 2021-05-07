@@ -33,12 +33,15 @@ class Train {
             }
             this.holes.push(array);
         }
+
+        this.avgY = 0;
         // this.ah = new THREE.ArrowHelper(this.directionVector, new THREE.Vector3(this.xCenter, 5, this.zCenter), 10);
         // this.scene.add(this.ah);
 
     }
 
-    getPos(x, z, time, vec, y) {
+    getPos(x, z, time, vec, y, deltaT) {
+        this.avgY = (9 * this.avgY + y) / 10;
         let [u, v] = this.toLocal(x, z);
         let r = this.envelope(u, v);
         if (Math.abs(r) < 0.05) return;
@@ -121,7 +124,7 @@ class Train {
         // this.depth = Perlin.lerp(0.5, this.depth, this.scene.chunks.getDepth(this.params.xCenter, this.params.zCenter));
         // this.params.freq = Math.sqrt(this.sceneParams.g * this.params.kappa * Math.tanh(this.params.kappa * this.depth));
         this.params.freq = .25;
-        this.params.speed = this.params.freq * this.params.wavelength;
+        this.params.speed = this.params.freq * this.params.wavelength / (2 * Math.PI);
         this.params.steepness = this.sceneParams.steepness / (this.params.amplitude * this.params.freq);
         this.params.phi = this.params.speed * 2 / this.params.wavelength;
         this.params.directionVector.set(Math.cos(this.params.direction), 0, Math.sin(this.params.direction));
@@ -265,17 +268,17 @@ class Water extends THREE.Group {
             for (let v = 0; v <= this.zSegs; v += 1) {
                 let i = this.index(u, v);
                 let [x, z] = this.getRestingPosFromIndex(u, v);
-                let y = this.geometry.getAttribute('position').getY(i);
-                vec.set(0, 0, 0);
+                let y = Math.max(0, this.geometry.getAttribute('position').getY(i)) / this.params.waveHeightScaling;
+                vec.set(0, y, 0);
                 for (let train of this.backgroundTrains) {
-                    train.getPos(x, z, this.time, vec, y);
+                    train.getPos(x, z, this.time, vec, vec.y, deltaT);
                 }
                 for (let train of this.trains) {
                     if (train.contains(x, z)) {
-                        train.getPos(x, z, this.time, vec, y);
+                        train.getPos(x, z, this.time, vec, vec.y, deltaT);
                     }
                 }
-                this.geometry.attributes.position.setXYZ(i, x + vec.x, vec.y, z + vec.z);
+                this.geometry.attributes.position.setXYZ(i, x + vec.x, vec.y - y, z + vec.z);
                 // this.geometry.attributes.position.setXYZ(i, x, 0, z);
             }
         }
