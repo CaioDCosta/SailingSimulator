@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min';
 import { Perlin } from 'utils';
+const PoissonDiskSampling = require("poisson-disk-sampling");
 class Train {
     constructor(scene, params) {
         this.timeOffset = Math.random() * 20;
@@ -12,7 +13,26 @@ class Train {
         this.depth = this.scene.params.chunk.seafloor.depth;
         this.cumDepth = 0;
         this.params.kappa = Math.PI * 2 / this.params.wavelength;
+        const pds = new PoissonDiskSampling({
+            shape: [this.params.trainWidth, this.params.trainHeight],
+            minDistance: this.params.wavelength * 1.5,
+            maxDistance: this.params.wavelength * 10,
+            tries: 10
+        })
+        const holes = pds.fill().sort(() => 0.5 - Math.random()).slice(0, this.params.numHoles).map(([x, z]) => [x - this.params.trainWidth / 2, z - this.params.trainHeight / 2]);
+        this.holes = [];
 
+        for (let x = -Math.ceil(this.params.trainWidth / 2); x <= this.params.trainWidth / 2; x++) {
+            let array = []
+            for (let z = -Math.ceil(this.params.trainHeight / 2); z <= this.params.trainHeight / 2; z++) {
+                let hole = 0;
+                for (let [x0, z0] of holes) {
+                    hole += this.gaussian(x, z, x0, z0);
+                }
+                array.push(1 - hole);
+            }
+            this.holes.push(array);
+        }
         // this.ah = new THREE.ArrowHelper(this.directionVector, new THREE.Vector3(this.xCenter, 5, this.zCenter), 10);
         // this.scene.add(this.ah);
 
@@ -54,20 +74,32 @@ class Train {
     }
 
     envelope(x, z) {
-        return this.sceneParams.waveHeightScaling * this.params.amplitude * this.xAmp(x) * this.zAmp(z);
+        let xf = Math.floor(x + this.params.trainWidth / 2), zf = Math.floor(z + this.params.trainHeight);
+        let hole = 1;
+        if (this.holes[xf] && this.holes[xf][zf]) {
+            hole = this.holes[xf][zf];
+        }
+        return this.sceneParams.waveHeightScaling * (this.params.amplitude * this.xAmp(x) * this.zAmp(z) * hole);
+    }
+
+    gaussian(x, z, x_0, z_0) {
+        let f = (a, a_0) => {
+            return (a - a_0) * (a - a_0) / (2 * this.params.wavelength);
+        }
+        return Math.exp(-(f(x, x_0) + f(z, z_0)));
     }
 
     zAmp(z) {
-        let h = this.params.trainHeight / 2;
-        if (Math.abs(z) > h) return 0;
-        return 1 - Math.exp(Math.abs(z) - h);
+        let h = this.params.trainHeight / 4;
+        const beta = -5 * Math.LN2 / h;
+        return Math.min(1, Math.exp(beta * (Math.abs(z) - h)));
     }
 
     xAmp(x) {
         let noise = Perlin.noise(x, x, x, this.sceneParams.waveHeightFreq) / 2;
-        let w = this.params.trainWidth / 2;
-        if (Math.abs(x) > w) return 0;
-        return noise * (1 - Math.exp(Math.abs(x) - w));
+        let w = this.params.trainWidth / 4;
+        const beta = -5 * Math.LN2 / w;
+        return noise * Math.min(1, Math.exp(beta * (Math.abs(x) - w)));
     }
 
     // Return true if we have exceeded the water bounds
@@ -147,7 +179,8 @@ class Water extends THREE.Group {
             trainHeight: height,
             direction: this.scene.state.windHeading + Math.PI / 8,
             wavelength: 5,
-            amplitude: 1
+            amplitude: 1,
+            numHoles: 10
         }
         let params2 = {
             xCenter: 0,
@@ -157,7 +190,8 @@ class Water extends THREE.Group {
             trainHeight: height,
             direction: this.scene.state.windHeading - Math.PI / 8,
             wavelength: 5,
-            amplitude: 1
+            amplitude: 1,
+            numHoles: 10
         }
         let params3 = {
             xCenter: 0,
@@ -167,7 +201,8 @@ class Water extends THREE.Group {
             trainHeight: height,
             direction: this.scene.state.windHeading,
             wavelength: 10,
-            amplitude: 2
+            amplitude: 2,
+            numHoles: 10
         }
         this.backgroundTrains = [
             new Train(this.scene, params1),
@@ -251,7 +286,7 @@ class Water extends THREE.Group {
         params.zCenter = Math.random() * (this.params.height - 2 * params.trainHeight) - this.params.height / 2 + params.trainHeight;
         params.wavelength = this.params.medianWavelength * (Math.random() * 3 / 2 + .5) * this.scene.state.windSpeed;
         params.direction = this.scene.state.windHeading;
-
+        params.numHoles = 30;
         let train = new Train(this.scene, params);
         if (index < 0 || index >= this.trains.length) {
             params.id = this.trains.length;

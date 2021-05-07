@@ -192,7 +192,7 @@ class OceanScene extends THREE.Scene {
             obj.update(deltaT);
         }
         let time = this.state.time;
-        let offset = Perlin.noise(time * 1.248, time * 3.456, time * 2.122, 0.05) / 10 - .25;
+        let offset = Perlin.noise(time * 1.248, time * 3.456, time * 2.122, 0.05) / 10 - .05;
         this.boat.tween.to({ y: this.chunks.getWaterHeight(0, 0) + offset }, this.params.interval).start(this.state.time);
         this.chunks.translate(-this.boat.velocity.x, -this.boat.velocity.z);
         this.state.time += deltaT;
