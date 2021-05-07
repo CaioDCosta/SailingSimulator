@@ -1,6 +1,10 @@
 import * as THREE from 'three';
+import { Color } from 'three';
+import { Vector3 } from 'three';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min';
 import { Perlin } from 'utils';
+import TEXTURE from './res/water_normals.png';
+import ENVMAP from './res/ToonEquirectangular.png';
 const PoissonDiskSampling = require("poisson-disk-sampling");
 class Train {
     constructor(scene, params) {
@@ -161,22 +165,43 @@ class Water extends THREE.Group {
         this.zSegs = this.params.height * this.segsPerUnit;
         this.prevHeading = this.scene.state.windHeading;
         this.geometry = new THREE.PlaneBufferGeometry(width, height, this.xSegs, this.zSegs);
-        const bumpTexture = new THREE.TextureLoader().load("/src/components/objects/res/water_normals.png")
+        const loader = new THREE.TextureLoader();
+        const bumpTexture = loader.load(TEXTURE);
         bumpTexture.repeat = new THREE.Vector2(16, 16);
         bumpTexture.wrapS = bumpTexture.wrapT = THREE.RepeatWrapping;
 
-        const colors = new Uint8Array(5);
-        for (let c = 0; c <= colors.length; c++) {
-            colors[c] = (c / colors.length) * 256;
-        }
+        // const colors = new Uint8Array(5);
+        // for (let c = 0; c <= colors.length; c++) {
+        //     colors[c] = (c / colors.length) * 256;
+        // }
 
-        const gradientMap = new THREE.DataTexture(colors, colors.length, 1, THREE.LuminanceFormat);
-        gradientMap.minFilter = THREE.NearestFilter;
-        gradientMap.magFilter = THREE.NearestFilter;
-        gradientMap.generateMipmaps = false;
+        // const gradientMap = new THREE.DataTexture(colors, colors.length, 1, THREE.LuminanceFormat);
+        // gradientMap.minFilter = THREE.NearestFilter;
+        // gradientMap.magFilter = THREE.NearestFilter;
+        // gradientMap.generateMipmaps = false;
         // this.material = new THREE.MeshToonMaterial({ color: 0x0010ff, side: THREE.FrontSide, bumpMap: bumpTexture, gradientMap: gradientMap, transparent: true });
 
-        this.material = new THREE.MeshPhysicalMaterial({ transmission: 0.3, ior: 1, opacity: 1, color: 0x0010ff, side: THREE.FrontSide, bumpMap: bumpTexture, transparent: true });
+        // this.material = new THREE.ShaderMaterial({
+        //     uniforms: this.uniforms,
+        //     vertexShader: waterVertex,
+        //     fragmentShader: waterFragment,
+        //     blending: THREE.AdditiveBlending,
+        //     transparent: true,
+        // });
+        const envMap = loader.load(ENVMAP);
+        this.material = new THREE.MeshPhysicalMaterial({
+            clearcoat: 1,
+            clearcoatRoughness: 0.1,
+            transmission: .2,
+            ior: .1,
+            reflectivity: 1,
+            opacity: 1,
+            color: 0x0010ff,
+            side: THREE.FrontSide,
+            envMap: envMap,
+            bumpMap: bumpTexture,
+            transparent: true
+        });
         this.mesh = new THREE.Mesh(this.geometry, this.material);
 
         this.trains = [];

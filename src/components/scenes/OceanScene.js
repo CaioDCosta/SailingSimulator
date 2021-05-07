@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { Boat, Chunks } from 'objects';
 import { Sun } from 'lights';
 import { Perlin } from 'utils';
-import { TextureLoader } from 'three/build/three.module';
+import TEXTURE from '../objects/res/ToonEquirectangular.png';
 
 class OceanScene extends THREE.Scene {
     constructor(interval) {
@@ -17,7 +17,7 @@ class OceanScene extends THREE.Scene {
             rotationSpeed: 0,
             windHeading: 0, // Wind direction in radians
             windDirection: new THREE.Vector3(),
-            windSpeed: 1,
+            windSpeed: 5,
             boatChunk: undefined,
             chunks: [],
             updateList: [],
@@ -29,8 +29,8 @@ class OceanScene extends THREE.Scene {
             lights: {
                 intensity: 2,
                 color: 0xffb400,
-                azimuth: Math.PI / 2,
-                zenith: Math.PI / 2,
+                azimuth: 0.05,
+                zenith: Math.PI / 4,
                 distance: 500,
                 focus: 1,
             },
@@ -90,7 +90,7 @@ class OceanScene extends THREE.Scene {
             },
         };
 
-        let textureEquirec = new THREE.TextureLoader().load('/src/components/objects/res/ToonEquirectangular.png');
+        let textureEquirec = new THREE.TextureLoader().load(TEXTURE);
         textureEquirec.mapping = THREE.EquirectangularReflectionMapping;
         textureEquirec.encoding = THREE.sRGBEncoding;
 
@@ -191,8 +191,8 @@ class OceanScene extends THREE.Scene {
             obj.update(deltaT);
         }
         let time = this.state.time;
-        let offset = Perlin.noise(time * 1.248, time * 3.456, time * 2.122, 0.05) / 10 - .05;
-        this.boat.tween.to({ y: this.chunks.getWaterHeight(0, 0) + offset }, this.params.interval).start(this.state.time);
+        let offset = Perlin.noise(time * 1.248, time * 3.456, time * 2.122, 0.05) / 10 - .15;
+        this.boat.tween.to({ y: this.chunks.getWaterHeight(0, 0) + offset }, this.params.interval / 2).start(this.state.time);
         this.chunks.translate(-this.boat.velocity.x, -this.boat.velocity.z);
         this.state.time += deltaT;
     }

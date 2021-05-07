@@ -1,4 +1,6 @@
 import { Group, PlaneGeometry, Mesh, LuminanceFormat, FrontSide, TextureLoader, DataTexture, NearestFilter, MeshPhysicalMaterial } from 'three';
+import TEXTURE from './res/water_normals.png';
+import ENVMAP from './res/ToonEquirectangular.png';
 class Boundary extends Group {
     constructor(scene, targetSize, width, height) {
         super();
@@ -7,7 +9,8 @@ class Boundary extends Group {
         this.scene = scene;
 
         const longGeo = new PlaneGeometry(targetSize, (targetSize - height) / 2);
-        const bumpTexture = new TextureLoader().load("/src/components/objects/res/water_normals.png");
+        const loader = new TextureLoader();
+        const bumpTexture = loader.load(TEXTURE);
         const colors = new Uint8Array(5);
         for (let c = 0; c <= colors.length; c++) {
             colors[c] = (c / colors.length) * 256;
@@ -18,7 +21,20 @@ class Boundary extends Group {
         gradientMap.magFilter = NearestFilter;
         gradientMap.generateMipmaps = false;
         // const boundaryMaterial = new MeshToonMaterial({ color: 0x0010ff, side: FrontSide, bumpMap: bumpTexture, gradientMap: gradientMap });
-        const boundaryMaterial = new MeshPhysicalMaterial({ transmission: 0.3, ior: 1, opacity: 1, color: 0x0010ff, side: FrontSide, bumpMap: bumpTexture, transparent: true });
+        const envMap = loader.load(ENVMAP);
+        const boundaryMaterial = new MeshPhysicalMaterial({
+            clearcoat: 1,
+            clearcoatRoughness: 0.1,
+            transmission: .2,
+            ior: .1,
+            reflectivity: 1,
+            opacity: 1,
+            color: 0x0010ff,
+            side: FrontSide,
+            envMap: envMap,
+            bumpMap: bumpTexture,
+            transparent: true
+        });
         const shortGeo = new PlaneGeometry((targetSize - width) / 2, height);
 
         const long1 = new Mesh(longGeo, boundaryMaterial);

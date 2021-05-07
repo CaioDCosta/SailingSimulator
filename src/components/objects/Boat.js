@@ -2,8 +2,7 @@ import { Group, Vector3 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { Sail } from 'objects';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min';
-
-const path = require('path');
+import MODEL from './res/boat.glb';
 
 class Boat extends Group {
     constructor(scene) {
@@ -19,7 +18,7 @@ class Boat extends Group {
 
         this.name = 'boat';
         loader.load(
-            path.resolve('/src/components/objects/res/boat.glb'),
+            MODEL,
             (gltf) => {
                 gltf.scene.traverse((node) => {
                     if (node.isMesh) {
