@@ -111,17 +111,19 @@ class Train {
             this.params.zCenter %= this.params.trainHeight;
         };
         // this.ah.position.set(this.params.xCenter, 5, this.params.zCenter);
-        return Math.abs(this.params.xCenter) + this.params.sizeX / 2 > this.params.trainWidth / 2
-            || Math.abs(this.params.zCenter) + this.params.sizeZ > this.params.trainHeight / 2;
+        return Math.abs(this.params.xCenter) + this.params.trainWidth / 2 > this.sceneParams.width / 2
+            || Math.abs(this.params.zCenter) + this.params.trainHeight > this.sceneParams.height / 2;
     }
 
     update() {
-        this.depth = Perlin.lerp(0.5, this.depth, this.scene.chunks.getDepth(this.params.xCenter, this.params.zCenter));
-        this.params.freq = Math.sqrt(this.sceneParams.g * this.params.kappa * Math.tanh(this.params.kappa * this.depth));
+        if (this.params.xCenter == undefined) debugger;
+        // this.depth = Perlin.lerp(0.5, this.depth, this.scene.chunks.getDepth(this.params.xCenter, this.params.zCenter));
+        // this.params.freq = Math.sqrt(this.sceneParams.g * this.params.kappa * Math.tanh(this.params.kappa * this.depth));
+        this.params.freq = .25;
         this.params.speed = this.params.freq * this.params.wavelength;
         this.params.steepness = this.sceneParams.steepness / (this.params.amplitude * this.params.freq);
         this.params.phi = this.params.speed * 2 / this.params.wavelength;
-
+        this.params.directionVector.set(Math.cos(this.params.direction), 0, Math.sin(this.params.direction));
         // this.cumDepth += (this.kappa - this.kappaInf) * this.groupVelocity / 10;
         // this.gamma = Perlin.lerp(0.5, this.gamma, this.scene.chunks.getSlope(this.xCenter, this.zCenter, this.directionVector));
         // let alpha = this.gamma * Math.exp(-this.params.kappa0 * this.depth);
@@ -151,6 +153,7 @@ class Water extends THREE.Group {
         let width = this.params.width, height = this.params.height;
         this.xSegs = this.params.width * this.segsPerUnit;
         this.zSegs = this.params.height * this.segsPerUnit;
+        this.prevHeading = this.scene.state.windHeading;
         this.geometry = new THREE.PlaneBufferGeometry(width, height, this.xSegs, this.zSegs);
         const bumpTexture = new THREE.TextureLoader().load("/src/components/objects/res/water_normals.png")
         bumpTexture.repeat = new THREE.Vector2(16, 16);
@@ -165,9 +168,9 @@ class Water extends THREE.Group {
         gradientMap.minFilter = THREE.NearestFilter;
         gradientMap.magFilter = THREE.NearestFilter;
         gradientMap.generateMipmaps = false;
-        this.material = new THREE.MeshToonMaterial({ color: 0x0010ff, side: THREE.FrontSide, bumpMap: bumpTexture, gradientMap: gradientMap, transparent: true });
+        // this.material = new THREE.MeshToonMaterial({ color: 0x0010ff, side: THREE.FrontSide, bumpMap: bumpTexture, gradientMap: gradientMap, transparent: true });
 
-        // this.material = new THREE.MeshPhysicalMaterial({ transmission: 0.3, ior: 1, opacity: 1, color: 0x0010ff, side: THREE.FrontSide, bumpMap: bumpTexture, transparent: true });
+        this.material = new THREE.MeshPhysicalMaterial({ transmission: 0.3, ior: 1, opacity: 1, color: 0x0010ff, side: THREE.FrontSide, bumpMap: bumpTexture, transparent: true });
         this.mesh = new THREE.Mesh(this.geometry, this.material);
 
         this.trains = [];
@@ -175,9 +178,9 @@ class Water extends THREE.Group {
             xCenter: 0,
             zCenter: 0,
             fixed: true,
-            trainWidth: width,
-            trainHeight: height,
-            direction: this.scene.state.windHeading + Math.PI / 8,
+            trainWidth: 2 * width,
+            trainHeight: 2 * height,
+            direction: this.scene.state.windHeading + Math.PI / 4,
             wavelength: 5,
             amplitude: 1,
             numHoles: 10
@@ -186,9 +189,9 @@ class Water extends THREE.Group {
             xCenter: 0,
             zCenter: 0,
             fixed: true,
-            trainWidth: width,
-            trainHeight: height,
-            direction: this.scene.state.windHeading - Math.PI / 8,
+            trainWidth: 2 * width,
+            trainHeight: 2 * height,
+            direction: this.scene.state.windHeading - Math.PI / 4,
             wavelength: 5,
             amplitude: 1,
             numHoles: 10
@@ -197,8 +200,8 @@ class Water extends THREE.Group {
             xCenter: 0,
             zCenter: 0,
             fixed: true,
-            trainWidth: width,
-            trainHeight: height,
+            trainWidth: 2 * width,
+            trainHeight: 2 * height,
             direction: this.scene.state.windHeading,
             wavelength: 10,
             amplitude: 2,
@@ -229,7 +232,9 @@ class Water extends THREE.Group {
         }
         for (let train of this.backgroundTrains) {
             train.update();
+            train.params.direction += this.prevHeading - this.scene.state.windHeading;
         }
+        this.prevHeading = this.scene.state.windHeading;
     }
 
     getRestingPosFromIndex(u, v) {
@@ -302,11 +307,11 @@ class Water extends THREE.Group {
         this.material.bumpMap.offset.y += 16 * z / this.params.height;
         for (let i = 0; i < this.trains.length; i++) {
             if (this.trains[i].translate(x, z)) {
-                generateNewTrain(i);
+                this.generateNewTrain(i);
             }
         }
         for (let train of this.backgroundTrains) {
-            // train.translate(x, z);
+            train.translate(x, z);
         }
     }
 }
