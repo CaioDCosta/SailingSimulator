@@ -50,8 +50,11 @@ class Train {
         let [u, v] = this.toLocal(x, z);
         let r = this.envelope(u, v);
         if (Math.abs(r) < 0.05) return;
-        let arg = this.params.directionVector.x * this.params.freq * u
-            + this.params.directionVector.z * this.params.freq * v
+        // let arg = this.params.directionVector.x * this.params.freq * x
+        //     + this.params.directionVector.z * this.params.freq * z
+        //     + this.params.phi * (this.time + this.timeOffset)
+        //     - this.sceneParams.lambda * this.deltaT * y;
+        let arg = this.params.freq * u
             + this.params.phi * (this.time + this.timeOffset)
             - this.sceneParams.lambda * this.deltaT * y;
         let mag = this.params.steepness * r * Math.cos(arg);
@@ -65,7 +68,7 @@ class Train {
         let cos = this.params.directionVector.x, sin = this.params.directionVector.z;
         let xt = x - this.params.xCenter;
         let zt = z - this.params.zCenter;
-        let u = xt * cos + zt * sin;
+        let u = - xt * cos - zt * sin;
         let v = xt * sin - zt * cos;
         return [u, v];
     }
@@ -171,25 +174,6 @@ class Water extends THREE.Group {
         bumpTexture.repeat = new THREE.Vector2(16, 16);
         bumpTexture.wrapS = bumpTexture.wrapT = THREE.RepeatWrapping;
 
-        // const colors = new Uint8Array(5);
-        // for (let c = 0; c <= colors.length; c++) {
-        //     colors[c] = (c / colors.length) * 256;
-        // }
-
-        // const gradientMap = new THREE.DataTexture(colors, colors.length, 1, THREE.LuminanceFormat);
-        // gradientMap.minFilter = THREE.NearestFilter;
-        // gradientMap.magFilter = THREE.NearestFilter;
-        // gradientMap.generateMipmaps = false;
-        // this.material = new THREE.MeshToonMaterial({ color: 0x0010ff, side: THREE.FrontSide, bumpMap: bumpTexture, gradientMap: gradientMap, transparent: true });
-
-        // this.material = new THREE.ShaderMaterial({
-        //     uniforms: this.uniforms,
-        //     vertexShader: waterVertex,
-        //     fragmentShader: waterFragment,
-        //     blending: THREE.AdditiveBlending,
-        //     transparent: true,
-        // });
-
         const envMap = loader.load(ENVMAP);
         this.material = new THREE.MeshPhysicalMaterial({
             clearcoat: 1,
@@ -273,7 +257,7 @@ class Water extends THREE.Group {
         }
         for (let train of this.backgroundTrains) {
             train.update(deltaT, WA);
-            train.params.direction += this.prevHeading - this.scene.state.windHeading;
+            train.params.direction += this.scene.state.windHeading - this.prevHeading;
         }
         this.prevHeading = this.scene.state.windHeading;
     }
@@ -301,10 +285,12 @@ class Water extends THREE.Group {
 
         // TODO optimize by setting on singleton vector3
         let vec = new THREE.Vector3();
-        for (let u = 0; u <= this.xSegs; u += 1) {
-            for (let v = 0; v <= this.zSegs; v += 1) {
+        let i = 0;
+        for (let v = 0; v <= this.zSegs; v++) {
+            for (let u = 0; u <= this.xSegs; u++) {
                 let i = this.index(u, v);
-                let [x, z] = this.getRestingPosFromIndex(u, v);
+                let x = u - this.params.width / 2,
+                    z = v - this.params.height / 2;
                 let y = Math.max(0, this.geometry.getAttribute('position').getY(i)) / this.params.waveHeightScaling;
                 vec.set(0, y, 0);
                 for (let train of this.backgroundTrains) {
@@ -316,9 +302,9 @@ class Water extends THREE.Group {
                     }
                 }
                 this.geometry.attributes.position.setXYZ(i, x + vec.x, vec.y - y, z + vec.z);
-                // this.geometry.attributes.position.setXYZ(i, x, 0, z);
             }
         }
+
         this.geometry.attributes.position.needsUpdate = true;
         this.geometry.computeVertexNormals();
     }

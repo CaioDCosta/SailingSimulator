@@ -31,7 +31,7 @@ class OceanScene extends THREE.Scene {
                 color: 0xffb400,
                 azimuth: 0.05,
                 zenith: Math.PI / 4,
-                distance: 5000,
+                distance: 4500,
                 focus: 1,
             },
             boat: {
@@ -111,10 +111,10 @@ class OceanScene extends THREE.Scene {
         this.add(this.sun, this.chunks);
         this.attach(this.boat);
 
-        // this.ah = new ArrowHelper(this.windDirection, new THREE.Vector3(0, 1, 0), 20);
-        // this.add(this.ah);
+        this.ah = new THREE.ArrowHelper(this.windDirection, new THREE.Vector3(0, 1, 0), 20);
+        this.add(this.ah);
 
-        // this.add(new AxesHelper(20));
+        this.add(new THREE.AxesHelper(20));
 
         // Populate GUI
         this.state.gui.add(this.state, 'rotationSpeed', -5, 5);
@@ -184,7 +184,7 @@ class OceanScene extends THREE.Scene {
         const { rotationSpeed, updateList } = this.state;
         this.boat.rotation.y += rotationSpeed / 100;
         this.state.windDirection.set(Math.cos(this.state.windHeading), 0, Math.sin(this.state.windHeading));
-        // this.ah.setDirection(this.state.windDirection);
+        this.ah.setDirection(this.state.windDirection);
         // Call update for each object in the updateList
         for (const obj of updateList) {
             obj.update(deltaT);
