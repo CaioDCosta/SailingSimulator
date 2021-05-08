@@ -16,7 +16,12 @@ class Train {
         this.params.freq = .5;
         this.params.directionVector = new THREE.Vector3(Math.cos(params.direction), 0, Math.sin(params.direction));
         this.depth = this.scene.params.chunk.seafloor.depth;
-        this.cumDepth = 0;
+        this.cumDepth = [];
+        this.gridSize = 5;
+        for (let z = 0; z < this.params.trainHeight; z += this.gridSize) {
+            this.cumDepth.push(new Array(Math.floor(this.params.trainWidth / this.gridSize)).fill(0));
+        }
+
         this.params.kappa = Math.PI * 2 / this.params.wavelength;
         const pds = new PoissonDiskSampling({
             shape: [this.params.trainWidth, this.params.trainHeight],
@@ -54,8 +59,10 @@ class Train {
         //     + this.params.directionVector.z * this.params.freq * z
         //     + this.params.phi * (this.time + this.timeOffset)
         //     - this.sceneParams.lambda * this.deltaT * y;
+        let depth = this.cumDepth[Math.floor((u + this.params.trainWidth / 2) / this.gridSize)][Math.floor((v + this.params.trainHeight / 2) / this.gridSize)];
         let arg = this.params.freq * u
             + this.params.phi * (this.time + this.timeOffset)
+            + (depth || 0)
             - this.sceneParams.lambda * this.deltaT * y;
         let mag = this.params.steepness * r * Math.cos(arg);
         let height = r * Math.sin(arg);
@@ -131,13 +138,18 @@ class Train {
     update(deltaT, WA) {
         this.deltaT = deltaT * this.scene.state.windSpeed;
         this.time += this.deltaT;
-        this.depth = this.params.fixed ? 100 : Perlin.lerp(0.5, this.depth, this.scene.chunks.getDepth(this.params.xCenter, this.params.zCenter));
-        // this.params.freq = Math.sqrt(this.sceneParams.g * this.params.kappa * Math.tanh(this.params.kappa * this.depth)) * (1 + this.scene.state.windSpeed / 20);        
+        // this.params.freq = Math.sqrt(this.sceneParams.g * tanh) * (1 + this.scene.state.windSpeed / 20);
+        this.params.freq = this.sceneParams.g / this.scene.state.windSpeed * Math.sqrt(2 / 3);
         this.params.speed = this.params.freq * this.params.wavelength / (2 * Math.PI);
         this.params.steepness = this.sceneParams.steepness / WA;
         this.params.phi = this.params.speed * 2 / this.params.wavelength;
         this.params.directionVector.set(Math.cos(this.params.direction), 0, Math.sin(this.params.direction));
-        // this.cumDepth += (this.kappa - this.kappaInf) * this.groupVelocity / 10;
+        for (let v = 0; v <= this.params.height / this.gridSize; v++) {
+            for (let u = 0; u <= this.params.width / this.gridSize; u++) {
+                let depth = this.params.fixed ? 100 : Perlin.lerp(0.5, this.depth, this.scene.chunks.getDepth(u * this.gridSize - this.params.width / 2 + this.params.xCenter, v * this.gridSize - this.params.height / 2 + this.params.zCenter));
+                this.cumDepth[v][u] += this.params.kappa * Math.tanh(this.params.kappa * depth) * this.params.speed * deltaT;
+            }
+        }
         // this.gamma = Perlin.lerp(0.5, this.gamma, this.scene.chunks.getSlope(this.xCenter, this.zCenter, this.directionVector));
         // let alpha = this.gamma * Math.exp(-this.params.kappa0 * this.depth);
         // this.cosAlpha = Math.cos(alpha);
@@ -169,10 +181,14 @@ class Water extends THREE.Group {
         this.prevHeading = this.scene.state.windHeading;
         this.geometry = new THREE.PlaneBufferGeometry(width, height, this.xSegs, this.zSegs);
         this.geometry.attributes.position.usage = THREE.DynamicDrawUsage;
+        this.geometry.attributes.uv2 = this.geometry.attributes.uv;
         const loader = new THREE.TextureLoader();
         const bumpTexture = loader.load(TEXTURE);
         bumpTexture.repeat = new THREE.Vector2(16, 16);
         bumpTexture.wrapS = bumpTexture.wrapT = THREE.RepeatWrapping;
+        const aoTexture = loader.load(TEXTURE);
+        aoTexture.repeat = new THREE.Vector2(16, 16);
+        aoTexture.wrapS = aoTexture.wrapT = THREE.RepeatWrapping;
 
         const envMap = loader.load(ENVMAP);
         this.material = new THREE.MeshPhysicalMaterial({
@@ -181,10 +197,11 @@ class Water extends THREE.Group {
             transmission: .4,
             ior: .1,
             reflectivity: .7,
+            roughness: 0.5,
             opacity: 1,
             color: 0x0010ff,
             side: THREE.FrontSide,
-            envMap: envMap,
+            envMap: envMap,            
             bumpMap: bumpTexture,
             transparent: true
         });
@@ -269,6 +286,8 @@ class Water extends THREE.Group {
     }
 
     update(deltaT) {
+        // this.mesh.material.alphaTest = this.scene.params.wave.alphaTest;
+        // this.mesh.material.needsUpdate = true;
         this.time += deltaT;
 
         if (this.trains.length != this.params.numTrains) {

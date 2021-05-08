@@ -1,4 +1,4 @@
-import { Group, PlaneGeometry, Mesh, LuminanceFormat, FrontSide, TextureLoader, DataTexture, NearestFilter, MeshPhysicalMaterial } from 'three';
+import { Group, PlaneGeometry, Mesh, LuminanceFormat, FrontSide, TextureLoader, RepeatWrapping, MeshPhysicalMaterial } from 'three';
 import TEXTURE from './res/water_normals.png';
 import ENVMAP from './res/ToonEquirectangular.png';
 class Boundary extends Group {
@@ -9,25 +9,24 @@ class Boundary extends Group {
         this.scene = scene;
 
         const longGeo = new PlaneGeometry(targetSize, (targetSize - height) / 2);
+        const shortGeo = new PlaneGeometry((targetSize - width) / 2, height);
         const loader = new TextureLoader();
         const bumpTexture = loader.load(TEXTURE);
-        const colors = new Uint8Array(5);
-        for (let c = 0; c <= colors.length; c++) {
-            colors[c] = (c / colors.length) * 256;
-        }
+        bumpTexture.repeat.set(16 / width * (targetSize - width) / 2, 16);
+        bumpTexture.wrapS = bumpTexture.wrapT = RepeatWrapping;
 
-        const gradientMap = new DataTexture(colors, colors.length, 1, LuminanceFormat);
-        gradientMap.minFilter = NearestFilter;
-        gradientMap.magFilter = NearestFilter;
-        gradientMap.generateMipmaps = false;
+        const bumpTextureRotated = loader.load(TEXTURE);
+        bumpTextureRotated.repeat.set(16 / width * targetSize, 16 / height * (targetSize - height) / 2);
+        bumpTextureRotated.wrapS = bumpTextureRotated.wrapT = RepeatWrapping;
         // const boundaryMaterial = new MeshToonMaterial({ color: 0x0010ff, side: FrontSide, bumpMap: bumpTexture, gradientMap: gradientMap });
         const envMap = loader.load(ENVMAP);
-        const boundaryMaterial = new MeshPhysicalMaterial({
+        const shortMaterial = new MeshPhysicalMaterial({
             clearcoat: 1,
             clearcoatRoughness: 0.1,
             transmission: .4,
             ior: .1,
             reflectivity: .7,
+            roughness: 0.5,
             opacity: 1,
             color: 0x0010ff,
             side: FrontSide,
@@ -35,12 +34,25 @@ class Boundary extends Group {
             bumpMap: bumpTexture,
             transparent: true
         });
-        const shortGeo = new PlaneGeometry((targetSize - width) / 2, height);
+        const longMaterial = new MeshPhysicalMaterial({
+            clearcoat: 1,
+            clearcoatRoughness: 0.1,
+            transmission: .4,
+            ior: .1,
+            reflectivity: .7,
+            roughness: 0.5,
+            opacity: 1,
+            color: 0x0010ff,
+            side: FrontSide,
+            envMap: envMap,
+            bumpMap: bumpTextureRotated,
+            transparent: true
+        });
 
-        const long1 = new Mesh(longGeo, boundaryMaterial);
-        const long2 = new Mesh(longGeo, boundaryMaterial);
-        const short1 = new Mesh(shortGeo, boundaryMaterial);
-        const short2 = new Mesh(shortGeo, boundaryMaterial);
+        const long1 = new Mesh(longGeo, longMaterial);
+        const long2 = new Mesh(longGeo, longMaterial);
+        const short1 = new Mesh(shortGeo, shortMaterial);
+        const short2 = new Mesh(shortGeo, shortMaterial);
         long1.receiveShadow = true;
         long2.receiveShadow = true;
         short1.receiveShadow = true;
