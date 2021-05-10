@@ -39,7 +39,7 @@ class Chunks extends Group {
     }
 
     getDepth(x, z) {
-        return Math.max(0.1, -this.getYFromGeometry(x, z, this.array[1][1].land.geometry));
+        return -this.getYFromGeometry(x, z, this.array[1][1].land.geometry);
     }
 
     getWaterHeight(x, z) {

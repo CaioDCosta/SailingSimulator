@@ -48,8 +48,7 @@ class Land extends Group {
             if (gauss > 0.05) g += gauss * Perlin.fade(distX) * Perlin.fade(distZ);
         }
         let p = Perlin.fBM(wx, 0, wz, s.init_freq, s.oct, s.lac, s.gain, s.init_amp) * s.amp;
-        // let y = p + g;
-        let y = g - this.params.seafloor.depth;
+        let y = p + g - this.params.seafloor.depth;
         if (y > i.thresholdMin) {
             let alpha = (y - i.thresholdMin) / (i.thresholdMax - i.thresholdMin);
             let noise = (Perlin.fBM(wx, 0, wz, i.init_freq, i.oct, i.lac, i.gain, i.init_amp) + 1) / 2 * i.amp;

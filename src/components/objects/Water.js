@@ -13,10 +13,6 @@ class Train {
         this.params = params;
         this.sceneParams = this.scene.params.wave;
         if (!this.params.amplitude) this.params.amplitude = this.sceneParams.medianAmplitude / this.sceneParams.medianWavelength * this.params.wavelength;
-        this.params.kappa = 2 * Math.PI / this.params.wavelength;
-        if (this.params.amplitude * this.params.kappa > 1) {
-            this.params.kappa = 1 / this.params.amplitude;
-        }
         this.params.directionVector = new THREE.Vector3(Math.cos(params.direction), 0, Math.sin(params.direction));
         this.cumDepth = [];
         this.gridSize = 5;
@@ -60,17 +56,19 @@ class Train {
         let r = this.envelope(u, v);
         if (Math.abs(r) < 0.05) return;
         let depth = this.scene.chunks.getDepth(x, z);
-        if (depth < 0.2) return;
         let slope = this.scene.chunks.getSlope(x, z, this.params.directionVector);
-        let kappa = this.params.kappaInf / Math.sqrt(Math.tanh(this.params.kappaInf * depth));
-        let sx = 1 / (1 - Math.exp(-depth));
-        let sy = sx * Math.exp(1 - Math.exp(-depth));
-        let alpha = slope * Math.exp(-depth);
+
+        if (depth < 0.2) return;
+
+        let sx = 1 / (1 - Math.exp(-this.sceneParams.kappaX * depth));
+        let sy = sx * (1 - Math.exp(-this.sceneParams.kappaY * depth));
+        let alpha = slope * Math.exp(-this.sceneParams.kappa0 * depth);
+
         let cosAlpha = Math.cos(alpha);
         let sinAlpha = Math.sin(alpha);
 
         let cumDepth = this.cumDepth[Math.floor((u + this.params.trainWidth / 2) / this.gridSize)][Math.floor((v + this.params.trainHeight / 2) / this.gridSize)];
-        let arg = //kappa * u
+        let arg =
             - this.params.freq * (this.time + this.timeOffset)
             + (cumDepth || 0)
             - this.sceneParams.lambda * this.deltaT * y;
@@ -129,7 +127,7 @@ class Train {
     }
 
     xAmp(x) {
-        let noise = Perlin.noise(x, x, x, this.sceneParams.waveHeightFreq) / 2;
+        let noise = Perlin.noise(x + this.params.xCenter, x + this.params.xCenter, x + this.params.xCenter, this.sceneParams.waveHeightFreq) / 2;
         let w = this.params.trainWidth / 4;
         const beta = -5 * Math.LN2 / w;
         return noise * Math.min(1, Math.exp(beta * (Math.abs(x) - w)));
@@ -152,7 +150,7 @@ class Train {
     }
 
     update(deltaT, WA) {
-        this.deltaT = deltaT * this.scene.state.windSpeed;
+        this.deltaT = deltaT * 1; // this.scene.state.windSpeed / 20;
         this.time += this.deltaT;
 
         this.params.steepness = this.sceneParams.steepness / WA;
@@ -165,14 +163,14 @@ class Train {
         for (let v = 0; v < this.params.trainHeight / this.gridSize; v++) {
             for (let u = 0; u < this.params.trainWidth / this.gridSize; u++) {
                 let depth = this.scene.chunks.getDepth(u * this.gridSize - this.params.trainWidth / 2 + this.params.xCenter, v * this.gridSize - this.params.trainHeight / 2 + this.params.zCenter);
-                let term = this.params.kappaInf * (1 / Math.sqrt(Math.tanh(this.params.kappaInf * depth)) - 1) * this.params.speed * deltaT;
+                let term = this.params.kappaInf / Math.sqrt(Math.tanh(this.params.kappaInf * depth)) * this.params.speed * deltaT;
                 if (depth < 0.2 || Number.isNaN(term)) this.cumDepth[v][u] = 0;
                 else this.cumDepth[v][u] += term;
             }
         }
         // if (!this.params.fixed) {
-        this.translate(this.params.directionVector.x * this.params.speed / 20,
-            this.params.directionVector.z * this.params.speed / 20);
+        this.translate(this.params.directionVector.x * this.params.speed * this.deltaT,
+            this.params.directionVector.z * this.params.speed * this.deltaT);
         // }
     }
 }
@@ -256,8 +254,8 @@ class Water extends THREE.Group {
             numHoles: 100
         }
         this.backgroundTrains = [
-            // new Train(this.scene, params1),
-            // new Train(this.scene, params2),
+            new Train(this.scene, params1),
+            new Train(this.scene, params2),
             new Train(this.scene, params3)
         ];
 
@@ -324,6 +322,7 @@ class Water extends THREE.Group {
                 let i = this.index(u, v);
                 let x = u - this.params.width / 2,
                     z = v - this.params.height / 2;
+                let depth = Math.max(0, this.scene.chunks.getDepth(x, z));
                 let y = Math.max(0, this.geometry.getAttribute('position').getY(i)) / this.params.waveHeightScaling;
                 vec.set(0, y, 0);
                 for (let train of this.backgroundTrains) {
@@ -334,7 +333,7 @@ class Water extends THREE.Group {
                         train.getPos(x, z, vec, vec.y);
                     }
                 }
-                this.geometry.attributes.position.setXYZ(i, x + vec.x, vec.y - y, z + vec.z);
+                this.geometry.attributes.position.setXYZ(i, x + vec.x, Math.max(vec.y - y, -depth), z + vec.z);
             }
         }
 

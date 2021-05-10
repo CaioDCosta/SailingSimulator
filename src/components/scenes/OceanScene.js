@@ -140,7 +140,9 @@ class OceanScene extends THREE.Scene {
         wave.add(this.params.wave, 'maxSize', 0, 100);
         wave.add(this.params.wave, 'numTrains', 0, 5, 1);
         wave.add(this.params.wave, 'lambda', 0, 2);
-        wave.add(this.params.wave, 'alphaTest', 0, 1);
+        wave.add(this.params.wave, 'kappaX', 0, 1);
+        wave.add(this.params.wave, 'kappaY', 0, 1);
+        wave.add(this.params.wave, 'kappa0', 0, 1);
 
         let lighting = this.state.gui.addFolder('Lighting');
         let updateLighting = () => this.sun.update();
