@@ -119,7 +119,7 @@ class OceanScene extends THREE.Scene {
 
         // Populate GUI
         this.state.gui.add(this.state, 'rotationSpeed', -5, 5);
-        this.state.gui.add(this.state, 'windSpeed', 0, 20);
+        this.state.gui.add(this.state, 'windSpeed', 0.01, 20);
         this.state.gui.add(this.state, 'windHeading', 0, 2 * Math.PI);
         this.state.gui.add(this.params.boat, 'mass', 0.01, 1);
         this.state.gui.add(this.params.boat, 'forceMultiplier', 1, 100);
@@ -156,11 +156,12 @@ class OceanScene extends THREE.Scene {
         seafloor.add(this.params.chunk.seafloor, 'init_amp', 0, 1);
         seafloor.add(this.params.chunk.seafloor, 'init_freq', 0, 0.1);
         seafloor.add(this.params.chunk.seafloor, 'amp', 0, 50);
-        seafloor.add(this.params.chunk.seafloor, 'depth', 0, 100);
 
         let updateIslands = (arg) => {
             this.chunks.update(arg);
         };
+        seafloor.add(this.params.chunk.seafloor, 'depth', 0, 100).onChange(() => updateIslands());
+
         let island = this.state.gui.addFolder('Island');
         island.add(this.params.chunk.island, 'minIslandsPerChunk', 0, 5, 1).onChange(() => updateIslands('new'));
         island.add(this.params.chunk.island, 'maxIslandsPerChunk', 0, 5, 1).onChange(() => updateIslands('new'));

@@ -15,7 +15,7 @@ import { OutlineEffect } from 'three/examples/jsm/effects/OutlineEffect.js';
 
 // Initialize core ThreeJS components
 const camera = new PerspectiveCamera(50, 1, 0.1, 5000);
-const renderer = new WebGLRenderer({ antialias: true });
+const renderer = new WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = PCFSoftShadowMap;
 renderer.toneMapping = ACESFilmicToneMapping;

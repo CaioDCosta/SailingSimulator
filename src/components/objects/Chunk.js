@@ -13,7 +13,6 @@ class Chunk extends Group {
         this.x0 = x0;
         this.z0 = z0;
         this.land = new Land(this);
-        this.land.position.y = -this.params.seafloor.depth;
         this.add(this.land);
 
         this.castShadow = true;
@@ -55,7 +54,6 @@ class Chunk extends Group {
     }
 
     update(deltaT) {
-        this.land.position.y = -this.params.seafloor.depth;
     }
 }
 export default Chunk;

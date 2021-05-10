@@ -35,7 +35,7 @@ class Chunks extends Group {
     getYFromGeometry(x, z, geometry) {
         let X = Math.floor(x + this.params.width / 2);
         let Z = Math.floor(z + this.params.height / 2);
-        return geometry.getAttribute('position').getY(X * (this.params.width + 1) + Z);
+        return geometry.getAttribute('position').getY(Z * (this.params.height + 1) + X);
     }
 
     getDepth(x, z) {
