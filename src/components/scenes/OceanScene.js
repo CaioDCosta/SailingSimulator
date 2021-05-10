@@ -107,15 +107,15 @@ class OceanScene extends THREE.Scene {
         // this.chunks.water.material.envMap = textureEquirec;
 
         let near = 10;
-        let far = this.params.chunk.width * 2;
+        let far = this.params.chunk.width * 1.5;
         this.fog = new THREE.Fog(sceneColor, near, far);
         this.add(this.sun, this.chunks);
         this.attach(this.boat);
 
-        this.ah = new THREE.ArrowHelper(this.windDirection, new THREE.Vector3(0, 1, 0), 20);
-        this.add(this.ah);
+        // this.ah = new THREE.ArrowHelper(this.windDirection, new THREE.Vector3(0, 1, 0), 20);
+        // this.add(this.ah);
 
-        this.add(new THREE.AxesHelper(20));
+        // this.add(new THREE.AxesHelper(20));
 
         // Populate GUI
         this.state.gui.add(this.state, 'rotationSpeed', -5, 5);
@@ -189,7 +189,7 @@ class OceanScene extends THREE.Scene {
         const { rotationSpeed, updateList } = this.state;
         this.boat.rotation.y += rotationSpeed / 100;
         this.state.windDirection.set(Math.cos(this.state.windHeading), 0, Math.sin(this.state.windHeading));
-        this.ah.setDirection(this.state.windDirection);
+        // this.ah.setDirection(this.state.windDirection);
         // Call update for each object in the updateList
         for (const obj of updateList) {
             obj.update(deltaT);

@@ -17,8 +17,6 @@ class Chunk extends Group {
 
         this.castShadow = true;
         this.receiveShadow = true;
-
-        scene.addToUpdateList(this);
     }
 
     translate(x, z) {
@@ -51,9 +49,6 @@ class Chunk extends Group {
 
     uvToLocalXZ(u, v) {
         return [(u - this.params.width / 2) * this.params.scale, (v - this.params.height / 2) * this.params.scale];
-    }
-
-    update(deltaT) {
     }
 }
 export default Chunk;

@@ -33,6 +33,7 @@ class Land extends Group {
     }
 
     topography(x, z, wx, wz) {
+        // return .05 * (x - 200) - 1;
         let s = this.params.seafloor;
         let i = this.params.island;
         let g = 0;
