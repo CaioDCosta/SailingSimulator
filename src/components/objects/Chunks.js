@@ -25,11 +25,14 @@ class Chunks extends Group {
     }
 
     getSlope(x, z, directionVector) {
-        let deltaX = Math.round(directionVector.x);
-        let deltaZ = Math.round(directionVector.z);
-        let depth1 = this.getDepth(x, z);
-        let depth2 = this.getDepth(x + deltaX, z + deltaZ);
-        return depth2 - depth1;
+        const X = Math.floor(x + this.params.width / 2);
+        const Z = Math.floor(z + this.params.height / 2);
+        let p = this.array[1][1].land.geometry.getAttribute('position').getY(Z * (this.params.height + 1) + X);
+        const fx = this.array[1][1].land.geometry.getAttribute('position').getY(Z * (this.params.height + 1) + X + 1) - p;
+        const fz = this.array[1][1].land.geometry.getAttribute('position').getY((Z + 1) * (this.params.height + 1) + X + 1) - p;
+        let xdir = Math.round(directionVector.x);
+        let zdir = Math.round(directionVector.z);
+        return fx * xdir + fz * zdir;
     }
 
     getYFromGeometry(x, z, geometry) {

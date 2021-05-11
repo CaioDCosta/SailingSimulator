@@ -243,8 +243,10 @@ class Water extends THREE.Group {
             position: new THREE.Vector3(0, 0, 0),
             size: new THREE.Vector3(200, 0, 200),
             heading: this.scene.state.windHeading,
+            wavelengthWindFactor: 1,
+            baseWavelength: 10,
             direction: new THREE.Vector3(),
-            steepness: 1
+            numHoles: 100,
         }
         this.trains = [
             new Train(this.scene, params),
