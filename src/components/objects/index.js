@@ -5,3 +5,4 @@ export { default as Land } from './Land.js';
 export { default as Chunk } from './Chunk.js';
 export { default as Chunks } from './Chunks.js';
 export { default as Boundary } from './Boundary.js';
+export { default as Train } from './Train.js';
