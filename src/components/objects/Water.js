@@ -239,18 +239,39 @@ class Water extends THREE.Group {
         });
         this.mesh = new THREE.Mesh(this.geometry, this.material);
 
-        let params = {
+        let params1 = {
+            position: new THREE.Vector3(0, 0, 0),
+            size: new THREE.Vector3(200, 0, 200),
+            heading: this.scene.state.windHeading - Math.random() * Math.PI / 4,
+            steepness: 1,
+            wavelengthWindFactor: 1,
+            baseWavelength: 5,
+            direction: new THREE.Vector3(),
+            numHoles: 500,
+        }
+        let params2 = {
+            position: new THREE.Vector3(0, 0, 0),
+            size: new THREE.Vector3(200, 0, 200),
+            heading: this.scene.state.windHeading + Math.random() * Math.PI / 4,
+            steepness: 1,
+            wavelengthWindFactor: 1,
+            baseWavelength: 5,
+            direction: new THREE.Vector3(),
+            numHoles: 500,
+        }
+        let params3 = {
             position: new THREE.Vector3(0, 0, 0),
             size: new THREE.Vector3(200, 0, 200),
             heading: this.scene.state.windHeading,
+            steepness: 0.75,
             wavelengthWindFactor: 1,
             baseWavelength: 10,
             direction: new THREE.Vector3(),
-            numHoles: 100,
+            numHoles: 500,
         }
-        this.trains = [
-            new Train(this.scene, params),
-        ];
+        this.trains = [new Train(this.scene, params1)];
+        this.trains.push(new Train(this.scene, params2));
+        this.trains.push(new Train(this.scene, params3));
 
         // for (let i = 0; i < this.params.numTrains; i++) {
         //     this.generateNewTrain();
@@ -266,8 +287,12 @@ class Water extends THREE.Group {
     index(u, v) { return v * (this.zSegs + 1) + u; }
 
     updateTrains(deltaT) {
+        let totalSteepness = 0;
         for (let train of this.trains) {
-            train.update(deltaT, this.scene.state.windHeading - this.prevHeading);
+            totalSteepness += train.params.steepness;
+        }
+        for (let train of this.trains) {
+            train.update(deltaT, this.scene.state.windHeading - this.prevHeading, totalSteepness);
         }
         this.prevHeading = this.scene.state.windHeading;
     }
@@ -339,7 +364,9 @@ class Water extends THREE.Group {
     translate(x, z) {
         this.material.bumpMap.offset.x += 16 * x / this.params.width;
         this.material.bumpMap.offset.y += 16 * z / this.params.height;
-        this.trains[0].translate(x, z);
+        for (let train of this.trains) {
+            train.translate(x, z);
+        }
         // for (let i = 0; i < this.trains.length; i++) {
         //     if (this.trains[i].translate(x, z)) {
         //         this.generateNewTrain(i);

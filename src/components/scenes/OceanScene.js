@@ -55,7 +55,7 @@ class OceanScene extends THREE.Scene {
                 depthDecay: 0.05,
                 medianWavelength: 5,
                 medianAmplitude: 0.5,
-                steepness: 0.5,
+                steepnessMultiplier: 0.5,
                 numTrains: 1,
                 lambda: 1,
                 waveSpeedFactor: 1,
@@ -133,7 +133,7 @@ class OceanScene extends THREE.Scene {
         let wave = this.state.gui.addFolder('Wave');
         wave.add(this.params.wave, 'medianWavelength', 0.1, 50);
         wave.add(this.params.wave, 'medianAmplitude', 0.1, 5);
-        wave.add(this.params.wave, 'steepness', 0, 1);
+        wave.add(this.params.wave, 'steepnessMultiplier', 0, 1);
         wave.add(this.params.wave, 'g', 1, 40);
         wave.add(this.params.wave, 'waveHeightScaling', 0, 3);
         wave.add(this.params.wave, 'waveHeightFreq', 0, 1);
