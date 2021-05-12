@@ -242,7 +242,7 @@ class Water extends THREE.Group {
         let params1 = {
             position: new THREE.Vector3(0, 0, 0),
             size: new THREE.Vector3(200, 0, 200),
-            heading: this.scene.state.windHeading - Math.random() * Math.PI / 4,
+            baseHeading: this.scene.state.windHeading - Math.random() * Math.PI / 4,
             steepness: 1,
             wavelengthWindFactor: 1,
             baseWavelength: 5,
@@ -252,7 +252,7 @@ class Water extends THREE.Group {
         let params2 = {
             position: new THREE.Vector3(0, 0, 0),
             size: new THREE.Vector3(200, 0, 200),
-            heading: this.scene.state.windHeading + Math.random() * Math.PI / 4,
+            baseHeading: this.scene.state.windHeading + Math.random() * Math.PI / 4,
             steepness: 1,
             wavelengthWindFactor: 1,
             baseWavelength: 5,
@@ -262,7 +262,7 @@ class Water extends THREE.Group {
         let params3 = {
             position: new THREE.Vector3(0, 0, 0),
             size: new THREE.Vector3(200, 0, 200),
-            heading: this.scene.state.windHeading,
+            baseHeading: this.scene.state.windHeading,
             steepness: 0.75,
             wavelengthWindFactor: 1,
             baseWavelength: 10,
@@ -273,9 +273,11 @@ class Water extends THREE.Group {
         this.trains.push(new Train(this.scene, params2));
         this.trains.push(new Train(this.scene, params3));
 
-        // for (let i = 0; i < this.params.numTrains; i++) {
-        //     this.generateNewTrain();
-        // }
+        this.numBackgroundTrains = this.trains.length;
+
+        for (let i = 0; i < this.params.numTrains; i++) {
+            this.generateNewTrain();
+        }
 
         this.mesh.receiveShadow = true;
         this.mesh.castShadow = true;
@@ -287,12 +289,8 @@ class Water extends THREE.Group {
     index(u, v) { return v * (this.zSegs + 1) + u; }
 
     updateTrains(deltaT) {
-        let totalSteepness = 0;
         for (let train of this.trains) {
-            totalSteepness += train.params.steepness;
-        }
-        for (let train of this.trains) {
-            train.update(deltaT, this.scene.state.windHeading - this.prevHeading, totalSteepness);
+            train.update(deltaT, this.scene.state.windHeading - this.prevHeading);
         }
         this.prevHeading = this.scene.state.windHeading;
     }
@@ -306,17 +304,17 @@ class Water extends THREE.Group {
     update(deltaT) {
         this.time += deltaT;
 
-        // if (this.trains.length != this.params.numTrains) {
-        //     for (let i = this.trains.length; i < this.params.numTrains; i++) {
-        //         this.generateNewTrain(i);
-        //     }
-        //     for (let i = this.trains.length; i > this.params.numTrains; i--) {
-        //         this.trains.pop();
-        //         // this.scene.remove(train.ah);
-        //     }
-        // }
+        if (this.trains.length - this.numBackgroundTrains != this.params.numTrains) {
+            for (let i = this.trains.length; i < this.params.numTrains + this.numBackgroundTrains; i++) {
+                this.generateNewTrain();
+            }
+            for (let i = this.trains.length; i > this.params.numTrains + this.numBackgroundTrains; i--) {
+                this.trains.pop();
+            }
+        }
 
         this.updateTrains(deltaT);
+        const checkNumber = (num) => Number.isNaN(num) ? 0 : num;
 
         // TODO optimize by setting on singleton vector3
         let vec = new THREE.Vector3();
@@ -327,10 +325,14 @@ class Water extends THREE.Group {
                     z = v - this.params.height / 2;
                 let y = Math.max(0, this.geometry.getAttribute('position').getY(i)) / this.params.waveHeightScaling;
                 vec.set(0, 0, 0);
+                let totalSteepness = 0;
                 for (let train of this.trains) {
-                    train.getPos(x, z, y, vec);
+                    if (train.contains(x, z)) totalSteepness += train.params.steepness;
                 }
-                this.geometry.attributes.position.setXYZ(i, x + vec.x, vec.y, z + vec.z);
+                for (let train of this.trains) {
+                    train.getPos(x, z, y, vec, totalSteepness);
+                }
+                this.geometry.attributes.position.setXYZ(i, x + checkNumber(vec.x), checkNumber(vec.y), z + checkNumber(vec.z));
             }
         }
 
@@ -340,18 +342,40 @@ class Water extends THREE.Group {
     }
 
     generateNewTrain(index = -1) {
-        return;
-        let params = {};
+        let params = {
+            size: new THREE.Vector3(),
+            position: new THREE.Vector3(),
+            direction: new THREE.Vector3(),
+        };
+        params.size.x = Math.floor(Math.random() * (this.params.maxSize - this.params.minSize) + this.params.minSize);
+        params.size.z = Math.floor(Math.random() * (this.params.maxSize - params.size.x) + params.size.x);
 
-        // TODO more intelligent location choice
-        params.trainWidth = Math.random() * (this.params.maxSize - this.params.minSize) + this.params.minSize;
-        params.trainHeight = Math.random() * (this.params.maxSize - this.params.minSize) + this.params.minSize;
-        params.xCenter = Math.random() * (this.params.width - 2 * params.trainWidth) - this.params.width / 2 + params.trainWidth;
-        params.zCenter = Math.random() * (this.params.height - 2 * params.trainHeight) - this.params.height / 2 + params.trainHeight;
-        params.wavelength = this.params.medianWavelength * (Math.random() * 3 / 2 + .5) * this.scene.state.windSpeed / 20;
-        params.direction = this.scene.state.windHeading;
+        const pos = Math.random() - 0.5;
+        switch (Math.floor(Math.random() * 4)) {
+            case 0:
+                params.position.x = this.params.width / 2;
+                params.position.z = pos * this.params.height;
+                break;
+            case 1:
+                params.position.x = -this.params.width / 2;
+                params.position.z = pos * this.params.height;
+                break;
+            case 2:
+                params.position.x = pos * this.params.width;
+                params.position.z = this.params.height / 2;
+                break;
+            case 3:
+            default:
+                params.position.x = pos * this.params.width;
+                params.position.z = -this.params.height / 2;
+        }
+
+        params.wavelength = this.params.medianWavelength * (Math.random() * 3 / 2 + .5);
+        params.steepness = 1;
+        params.baseHeading = this.scene.state.windHeading + ((Math.random() - 0.5) / (2 * Math.PI));
         params.numHoles = 30;
         let train = new Train(this.scene, params);
+
         if (index < 0 || index >= this.trains.length) {
             params.id = this.trains.length;
             this.trains.push(train);

@@ -5,12 +5,12 @@ const PoissonDiskSampling = require("poisson-disk-sampling");
 class Train {
 
     /* Params:
-     * position:    Vector3D (xCenter, 0, zCenter) in world coordinates     
-     * size:        Vector3D (trainWidth, trainMaxAmplitude, trainHeight)
-     * direction:   Vector3D (x-component, 0, z-component)
-     * baseWavelength:  Base wavelength for the train at 5 mps winds
-     * wavelengthWindFactor: Scaling factor for wind impact on wavelength;
-     * 
+     * position:                Vector3D (xCenter, 0, zCenter) in world coordinates     
+     * size:                    Vector3D (trainWidth, trainMaxAmplitude, trainHeight)
+     * direction:               Vector3D (x-component, 0, z-component)
+     * baseWavelength:          Base wavelength for the train at 5 mps winds
+     * wavelengthWindFactor:    Scaling factor for wind impact on wavelength;
+     * baseHeading:             Base heading for the wave train.
      */
     constructor(scene, params) {
         this.scene = scene;
@@ -23,6 +23,8 @@ class Train {
         this.params.freq = Math.sqrt(this.sceneParams.g / this.params.wavelength * 2 * Math.PI);
         this.params.amplitude = this.sceneParams.steepness * this.params.wavelength / (2 * Math.PI);
         this.kappaInf = this.params.freq * this.params.freq / this.sceneParams.g;
+
+        this.params.headingOffset = 0;
 
         this.initHoles();
     }
@@ -78,21 +80,24 @@ class Train {
     }
 
     noiseAmp(x, z) {
-        let noise = Perlin.noise(x + this.params.position.x, z + this.params.position.z, 0,
-            this.params.heightFreq || this.sceneParams.waveHeightFreq);
+        let noise = Perlin.noise(x, z, 0,
+            this.params.heightFreq || this.sceneParams.waveHeightPerlinFreq);
         let w = this.params.size.z / 4;
         const beta = -5 * Math.LN2 / w;
-        return noise * Math.min(1, Math.exp(beta * (Math.abs(x) - w)));
+        return Math.min(1, (1 + this.sceneParams.waveHeightPerlinAmplitude * noise) * Math.exp(beta * (Math.abs(x) - w)));
     }
 
     envelope(u, v) {
         let hole = this.holes[this.index(u, v)];
-        return Math.max(0, this.standardAmp(u) * this.standardAmp(v) - this.params.amplitude * hole);
+        return Math.max(0, this.noiseAmp(u, v) * this.standardAmp(v) - this.sceneParams.holiness * this.params.amplitude * hole);
     }
 
-    getPos(x, z, y, vec) {
+    getPos(x, z, y, vec, totalSteepness) {
         const [u, v] = this.toLocal(x, z);
-        const r = this.envelope(u, v) * this.params.amplitude;
+        if (Math.abs(u) > this.params.size.x / 2 || Math.abs(v) > this.params.size.z / 2) return;
+        const r = this.envelope(u, v) * this.params.amplitude / totalSteepness;
+        // vec.y += r;
+        // return;
         if (Math.abs(r) < 0.01) return;
 
         const depth = this.scene.chunks.getDepth(x, z);
@@ -135,14 +140,16 @@ class Train {
         this.params.position.z += z;
     }
 
-    update(deltaT, heading, totalSteepness) {
+    update(deltaT, deltaHeading) {
         this.deltaT = deltaT * this.scene.state.windSpeed / 20 * this.sceneParams.waveSpeedFactor;
         this.time += this.deltaT;
         this.params.wavelength = this.params.wavelengthWindFactor * this.scene.state.windSpeed / 5 * this.params.baseWavelength;
         this.params.freq = Math.sqrt(this.sceneParams.g / this.params.wavelength * 2 * Math.PI);
-        this.params.amplitude = this.sceneParams.steepnessMultiplier * this.params.steepness / totalSteepness * this.params.wavelength / (2 * Math.PI);
+        this.params.amplitude = this.sceneParams.steepnessMultiplier * this.params.steepness * this.params.wavelength / (2 * Math.PI);
         this.kappaInf = this.params.freq * this.params.freq / this.sceneParams.g;
-        this.params.direction.set(Math.cos(this.params.heading), 0, Math.sin(this.params.heading));
+        this.params.headingOffset += deltaHeading;
+        const heading = this.params.baseHeading + this.params.headingOffset;
+        this.params.direction.set(Math.cos(heading), 0, Math.sin(heading));
     }
 }
 

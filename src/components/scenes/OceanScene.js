@@ -48,7 +48,8 @@ class OceanScene extends THREE.Scene {
                 maxSize: 60,
                 g: 9.8,
                 waveHeightScaling: 1,
-                waveHeightFreq: 0.1,
+                waveHeightPerlinFreq: 0.05,
+                waveHeightPerlinAmplitude: 5,
                 kappa0: 1,
                 kappaX: 1,
                 kappaY: 1,
@@ -59,6 +60,7 @@ class OceanScene extends THREE.Scene {
                 numTrains: 1,
                 lambda: 1,
                 waveSpeedFactor: 1,
+                holiness: 1
             },
             chunk: {
                 seafloor: {
@@ -136,7 +138,8 @@ class OceanScene extends THREE.Scene {
         wave.add(this.params.wave, 'steepnessMultiplier', 0, 1);
         wave.add(this.params.wave, 'g', 1, 40);
         wave.add(this.params.wave, 'waveHeightScaling', 0, 3);
-        wave.add(this.params.wave, 'waveHeightFreq', 0, 1);
+        wave.add(this.params.wave, 'waveHeightPerlinFreq', 0, 1);
+        wave.add(this.params.wave, 'waveHeightPerlinAmplitude', 0, 10);
         wave.add(this.params.wave, 'minSize', 0, 100);
         wave.add(this.params.wave, 'maxSize', 0, 100);
         wave.add(this.params.wave, 'numTrains', 0, 5, 1);
@@ -145,7 +148,8 @@ class OceanScene extends THREE.Scene {
         wave.add(this.params.wave, 'kappaY', 0.01, 1);
         wave.add(this.params.wave, 'kappa0', 0.01, 1);
         wave.add(this.params.wave, 'depthDecay', 0.01, .2);
-        wave.add(this.params.wave, 'waveSpeedFactor', 0, 2);
+        wave.add(this.params.wave, 'waveSpeedFactor', 0, 5);
+        wave.add(this.params.wave, 'holiness', 0, 5);
 
         let lighting = this.state.gui.addFolder('Lighting');
         let updateLighting = () => this.sun.update();
