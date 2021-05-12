@@ -37,7 +37,7 @@ class Train {
         const pds = new PoissonDiskSampling({
             shape: [this.params.size.x, this.params.size.z],
             minDistance: this.params.wavelength * 1.5,
-            maxDistance: this.params.wavelength * 3,
+            maxDistance: this.params.wavelength * 10,
             tries: 10
         })
         const holes = pds.fill().sort(() => 0.5 - Math.random()).slice(0, this.params.numHoles).map(([x, z]) => [x - this.params.size.x / 2, z - this.params.size.z / 2]);
@@ -70,7 +70,7 @@ class Train {
 
     contains(x, z) {
         let [u, v] = this.toLocal(x, z);
-        return Math.abs(u) < this.params.size.x / 2 && Math.abs(v) < this.params.size.z / 2;
+        return Math.abs(u) <= this.params.size.x / 2 && Math.abs(v) <= this.params.size.z / 2;
     }
 
     standardAmp(z) {
