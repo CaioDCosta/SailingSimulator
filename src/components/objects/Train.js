@@ -6,8 +6,7 @@ class Train {
 
     /* Params:
      * position:                Vector3D (xCenter, 0, zCenter) in world coordinates     
-     * size:                    Vector3D (trainWidth, trainMaxAmplitude, trainHeight)
-     * direction:               Vector3D (x-component, 0, z-component)
+     * size:                    Vector3D (trainWidth, 0, trainHeight)
      * baseWavelength:          Base wavelength for the train at 5 mps winds
      * wavelengthWindFactor:    Scaling factor for wind impact on wavelength;
      * baseHeading:             Base heading for the wave train.
@@ -23,9 +22,9 @@ class Train {
         this.params.freq = Math.sqrt(this.sceneParams.g / this.params.wavelength * 2 * Math.PI);
         this.params.amplitude = this.sceneParams.steepness * this.params.wavelength / (2 * Math.PI);
         this.kappaInf = this.params.freq * this.params.freq / this.sceneParams.g;
-
+        this.params.direction = new Vector3(Math.cos(this.params.heading), 0, Math.sin(this.params.heading));
         this.params.headingOffset = 0;
-
+        this.offset = new Vector3();
         this.initHoles();
     }
 
@@ -69,34 +68,66 @@ class Train {
     }
 
     contains(x, z) {
+        if (this.params.background) return true;
         let [u, v] = this.toLocal(x, z);
         return Math.abs(u) <= this.params.size.x / 2 && Math.abs(v) <= this.params.size.z / 2;
     }
 
-    standardAmp(z) {
-        let h = this.params.size.z / 4;
+    standardAmp(x, sizeX) {
+        let h = sizeX / 4;
         const beta = -5 * Math.LN2 / h;
-        return Math.min(1, Math.exp(beta * (Math.abs(z) - h)));
+        return Math.min(1, Math.exp(beta * (Math.abs(x) - h)));
     }
 
-    noiseAmp(x, z) {
+    noiseAmp(x, sizeX) {
         let noise = Perlin.noise(x, 1.24, 2.415,
             this.params.heightFreq || this.sceneParams.waveHeightPerlinFreq) + 1;
-        let w = this.params.size.z / 4;
+        let w = sizeX / 4;
         const beta = -5 * Math.LN2 / w;
         return (1 + this.sceneParams.waveHeightPerlinAmplitude * noise) * Math.min(1, Math.exp(beta * (Math.abs(x) - w)));
     }
 
     envelope(u, v) {
         let hole = this.holes[this.index(u, v)];
-        return Math.max(0, Math.min(1, (this.sceneParams.usePerlinNoiseInHeight ? this.noiseAmp(u, v) : this.standardAmp(u))
-            * this.standardAmp(v) - (this.params.holiness || this.sceneParams.holiness) * hole));
+        return Math.max(0, Math.min(1, (this.sceneParams.usePerlinNoiseInHeight ? this.noiseAmp(u, this.params.size.x) : this.standardAmp(u, this.params.size.x))
+            * this.standardAmp(v, 0.75 * this.params.size.z) - (this.params.holiness || this.sceneParams.holiness) * hole));
+    }
+
+    getPosBackground(x, z, y, vec, totalSteepness) {
+        const mod = (a, m) => ((a % m) + m) % m;
+        const [u, v] = this.toLocal(mod(x + this.params.size.x / 2 - this.offset.x, this.params.size.x) - this.params.size.x / 2,
+            mod(z + this.params.size.z / 2 - this.offset.z, this.params.size.z) - this.params.size.z / 2);
+        // const u = -x * this.params.direction.x - z * this.params.direction.z;
+        const r = this.envelope(x, z) * this.params.amplitude / totalSteepness;
+        if (Math.abs(r) < 0.01) return;
+
+        const depth = this.scene.chunks.getDepth(x, z);
+        if (depth < 0) return;
+
+        const phi = this.kappaInf * u - this.params.freq * this.time - this.sceneParams.lambda * y * this.deltaT;
+        const sinPhi = Math.sin(phi);
+        const cosPhi = Math.cos(phi);
+
+        const slope = this.scene.chunks.getSlope(x, z, this.params.direction);
+        const alpha = Math.max(0, Math.min(1, slope * Math.exp(-depth * this.sceneParams.kappa0)));
+        const sinAlpha = Math.sin(alpha);
+        const cosAlpha = Math.cos(alpha);
+        const sx = Math.max(0, Math.min(1, 1 / (1 - Math.exp(-depth * this.sceneParams.kappaX))));
+        const sy = Math.max(0, Math.min(1, sx * (1 - Math.exp(-depth * this.sceneParams.kappaY))));
+
+        const forward = r * cosAlpha * sx * sinPhi + sinAlpha * sy * cosPhi;
+        const up = r * cosAlpha * sy * cosPhi - sinAlpha * sx * sinPhi;
+        // const forward = r * sinPhi;
+        // const up = r * cosPhi;   
+        vec.x += forward * this.params.direction.x;
+        vec.y += up;
+        vec.z += forward * this.params.direction.z;
     }
 
     getPos(x, z, y, vec, totalSteepness) {
-        const [u, v] = this.toLocal(x, z);
-        if (Math.abs(u) > this.params.size.x / 2 || Math.abs(v) > this.params.size.z / 2) return;
-        const r = this.envelope(u, v) * this.params.amplitude / totalSteepness;
+        const [u, v] = this.toLocal(x + this.offset.x, z + this.offset.z);
+        if (!this.params.background && Math.abs(u) > this.params.size.x / 2 || Math.abs(v) > this.params.size.z / 2) return;
+        const r = (this.params.background ? 1 : this.envelope(u, v)) * this.params.amplitude / totalSteepness;
         // vec.y += r;
         // return;
         if (Math.abs(r) < 0.01) return;
@@ -137,21 +168,26 @@ class Train {
     }
 
     translate(x, z) {
-        if (this.params.background) return;
-        this.params.position.x += x;
-        this.params.position.z += z;
+        this.offset.x += x;
+        this.offset.z += z;
     }
 
     update(deltaT, deltaHeading) {
         this.deltaT = deltaT * this.scene.state.windSpeed / 20 * this.sceneParams.waveSpeedFactor;
         this.time += this.deltaT;
         this.params.wavelength = this.params.wavelengthWindFactor * this.scene.state.windSpeed / 5 * this.params.baseWavelength;
-        this.params.freq = Math.sqrt(this.sceneParams.g / this.params.wavelength * 2 * Math.PI);
+        this.params.freq = Math.sqrt(this.sceneParams.g / this.params.wavelength * (2 * Math.PI));
         this.params.amplitude = this.sceneParams.steepnessMultiplier * this.params.steepness * this.params.wavelength / (2 * Math.PI);
         this.kappaInf = this.params.freq * this.params.freq / this.sceneParams.g;
         this.params.headingOffset += deltaHeading;
         const heading = this.params.baseHeading + this.params.headingOffset;
         this.params.direction.set(Math.cos(heading), 0, Math.sin(heading));
+        // this.params.speed = Math.sqrt(this.params.g * this.params.wavelength / (2 * Math.PI))
+        if (!this.params.background) {
+            const speed = this.params.freq * this.params.wavelength;
+            this.params.position.x += speed * deltaT * this.params.direction.x;
+            this.params.position.z += speed * deltaT * this.params.direction.z;
+        }
     }
 }
 

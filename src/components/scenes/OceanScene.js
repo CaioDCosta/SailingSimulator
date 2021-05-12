@@ -58,7 +58,7 @@ class OceanScene extends THREE.Scene {
                 medianWavelength: 5,
                 medianAmplitude: 0.5,
                 steepnessMultiplier: 0.75,
-                numTrains: 1,
+                numTrains: 0,
                 lambda: 1,
                 waveSpeedFactor: 1,
                 holiness: 1,
@@ -116,10 +116,7 @@ class OceanScene extends THREE.Scene {
         this.add(this.sun, this.chunks);
         this.attach(this.boat);
 
-        // this.ah = new THREE.ArrowHelper(this.windDirection, new THREE.Vector3(0, 1, 0), 20);
-        // this.add(this.ah);
-
-        // this.add(new THREE.AxesHelper(20));
+        
 
         // Populate GUI
         this.state.gui.add(this.state, 'rotationSpeed', -5, 5);
