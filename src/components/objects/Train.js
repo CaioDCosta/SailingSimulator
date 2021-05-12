@@ -87,18 +87,21 @@ class Train {
         return (1 + this.sceneParams.waveHeightPerlinAmplitude * noise) * Math.min(1, Math.exp(beta * (Math.abs(x) - w)));
     }
 
-    envelope(u, v) {
+    calcHoles(r, u, v) {
         let hole = this.holes[this.index(u, v)];
+        return hole === undefined ? r : Math.max(0, Math.min(1, r - (this.params.holiness || this.sceneParams.holiness) * hole));
+    }
+
+    envelope(u, v) {
         return Math.max(0, Math.min(1, (this.sceneParams.usePerlinNoiseInHeight ? this.noiseAmp(u, this.params.size.x) : this.standardAmp(u, this.params.size.x))
-            * this.standardAmp(v, 0.75 * this.params.size.z) - (this.params.holiness || this.sceneParams.holiness) * hole));
+            * this.standardAmp(v, 0.75 * this.params.size.z)));
     }
 
     getPosBackground(x, z, y, vec, totalSteepness) {
         const mod = (a, m) => ((a % m) + m) % m;
         const [u, v] = this.toLocal(mod(x + this.params.size.x / 2 - this.offset.x, this.params.size.x) - this.params.size.x / 2,
             mod(z + this.params.size.z / 2 - this.offset.z, this.params.size.z) - this.params.size.z / 2);
-        // const u = -x * this.params.direction.x - z * this.params.direction.z;
-        const r = this.envelope(x, z) * this.params.amplitude / totalSteepness;
+        const r = this.calcHoles(this.envelope(x, z), u, v) * this.params.amplitude / totalSteepness;
         if (Math.abs(r) < 0.01) return;
 
         const depth = this.scene.chunks.getDepth(x, z);
@@ -125,9 +128,13 @@ class Train {
     }
 
     getPos(x, z, y, vec, totalSteepness) {
+        if (this.params.background) {
+            this.getPosBackground(x, z, y, vec, totalSteepness);
+            return;
+        }
         const [u, v] = this.toLocal(x + this.offset.x, z + this.offset.z);
-        if (!this.params.background && Math.abs(u) > this.params.size.x / 2 || Math.abs(v) > this.params.size.z / 2) return;
-        const r = (this.params.background ? 1 : this.envelope(u, v)) * this.params.amplitude / totalSteepness;
+        if (Math.abs(u) > this.params.size.x / 2 || Math.abs(v) > this.params.size.z / 2) return;
+        const r = this.calcHoles(this.envelope(u, v), u, v) * this.params.amplitude / totalSteepness;
         // vec.y += r;
         // return;
         if (Math.abs(r) < 0.01) return;
