@@ -34,20 +34,27 @@ document.body.style.margin = 0; // Removes margin around page
 document.body.style.overflow = 'hidden'; // Fix scrolling
 document.body.appendChild(canvas);
 
-const clock = new Clock();
-let delta = 0;
-const interval = 1 / 60; // Target 60 FPS
-let time = 0;
-
-const scene = new OceanScene(interval);
-
 // Set up controls
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
 controls.enablePan = false;
-controls.minDistance = 4;
-controls.maxDistance = 1000;
+controls.minDistance = 1;
+controls.maxDistance = 10;
+controls.target.set(0, 0, 5);
+controls.maxPolarAngle = Math.PI / 2 - .1;
+controls.minAzimuthAngle = - 5 * Math.PI / 4;
+controls.maxAzimuthAngle = controls.minAzimuthAngle + Math.PI / 2;
 controls.update();
+
+
+const clock = new Clock();
+let delta = 0;
+const interval = 1 / 30; // Target 60 FPS
+let time = 0;
+
+const scene = new OceanScene(interval, controls, camera);
+
+
 
 const stats = new Stats();
 document.body.appendChild(stats.domElement);
@@ -63,6 +70,8 @@ const onAnimationFrameHandler = (timeStamp) => {
         TWEEN.update(time * 1000);
         stats.begin();
         effect.render(scene, camera);
+
+
         scene.update && scene.update(interval);
         stats.end();
         stats.update();

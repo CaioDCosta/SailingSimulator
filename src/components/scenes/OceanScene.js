@@ -6,9 +6,12 @@ import { Perlin } from 'utils';
 import TEXTURE from '../objects/res/ToonEquirectangular.png';
 
 class OceanScene extends THREE.Scene {
-    constructor(interval) {
+    constructor(interval, controls, camera) {
         // Call parent Scene() constructor
         super();
+
+        this.controls = controls;
+        this.camera = camera;
 
         // Init state
         this.state = {
@@ -39,6 +42,7 @@ class OceanScene extends THREE.Scene {
                 forceMultiplier: 1,
                 velocityMultiplier: 2,
                 damping: 0.5,
+                turningSpeed: 0,
             },
             wave: {
                 enabled: true,
@@ -116,7 +120,7 @@ class OceanScene extends THREE.Scene {
         this.add(this.sun, this.chunks);
         this.attach(this.boat);
 
-        
+
 
         // Populate GUI
         this.state.gui.add(this.state, 'rotationSpeed', -5, 5);
@@ -126,6 +130,7 @@ class OceanScene extends THREE.Scene {
         this.state.gui.add(this.params.boat, 'forceMultiplier', 1, 100);
         this.state.gui.add(this.params.boat, 'velocityMultiplier', 0, 3);
         this.state.gui.add(this.params.boat, 'damping', 0, 1);
+        this.state.gui.add(this.params.boat, 'turningSpeed', 0, .1);
         this.state.gui.add(this.params, 'fog').onChange((showFog) => {
             this.fog.near = showFog ? near : 20000;
             this.fog.far = showFog ? far : 20000;
@@ -192,17 +197,26 @@ class OceanScene extends THREE.Scene {
     }
 
     update(deltaT) {
-        const { rotationSpeed, updateList } = this.state;
-        this.boat.rotation.y += rotationSpeed / 100;
         this.state.windDirection.set(Math.cos(this.state.windHeading), 0, Math.sin(this.state.windHeading));
         // this.ah.setDirection(this.state.windDirection);
         // Call update for each object in the updateList
-        for (const obj of updateList) {
+        for (const obj of this.state.updateList) {
             obj.update(deltaT);
         }
+
+        const rotation = this.controls.getAzimuthalAngle() - this.controls.minAzimuthAngle - Math.PI / 4;
+        this.boat.rudder.mesh.rotation.y += (this.boat.rudder.mesh.rotation.y - rotation) * this.params.boat.turningSpeed;
+        this.boat.rotation.y += (this.boat.rudder.mesh.rotation.y - this.boat.rotation.y) * (1 + this.boat.velocity.length());
+        // this.boat.rotation.y %= (2 * Math.PI);
+        this.boat.rudder.mesh.rotation.y -= rotation * (0.1 + this.params.boat.turningSpeed);
+        this.controls.target.set(5 * Math.sin(this.boat.rotation.y), 0, 5 * Math.cos(this.boat.rotation.y));
+        this.controls.minAzimuthAngle = (3 * Math.PI / 4 + this.boat.rotation.y) % (2 * Math.PI);
+        this.controls.maxAzimuthAngle = this.controls.minAzimuthAngle + Math.PI / 2;
+        this.controls.update();
+
         let time = this.state.time;
         let offset = Perlin.noise(time * 1.248, time * 3.456, time * 2.122, 0.05) / 10 - .15;
-        this.boat.tween.to({ y: this.chunks.getWaterHeight(0, 0) + offset }, this.params.interval / 2).start(this.state.time);
+        this.boat.tween.to({ y: this.chunks.getWaterHeight(0, 0) + offset }, this.params.interval).start(time);
         this.chunks.translate(-this.boat.velocity.x, -this.boat.velocity.z);
         this.state.time += deltaT;
     }

@@ -45,18 +45,6 @@ class Water extends THREE.Group {
         });
         this.mesh = new THREE.Mesh(this.geometry, this.material);
 
-        // let params = {
-        //     position: new THREE.Vector3(0, 0, 0),
-        //     size: new THREE.Vector3(this.params.width, 0, this.params.height),
-        //     baseHeading: this.scene.state.windHeading,
-        //     steepness: 0.5,
-        //     wavelengthWindFactor: 1,
-        //     baseWavelength: 8,
-        //     heightFreq: 0.1,
-        //     numHoles: 500,
-        //     background: true,
-        // }
-
         let bw = 0.75 * this.params.width, bh = 0.75 * this.params.height;
         let params2 = {
             position: new THREE.Vector3(0, 0, 0),

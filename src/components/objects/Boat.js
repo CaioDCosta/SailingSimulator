@@ -35,9 +35,9 @@ class Boat extends Group {
         this.tween = new TWEEN.Tween(this.position).easing(TWEEN.Easing.Elastic.InOut);
         this.rudder = {};
         this.rudder.geometry = new BoxGeometry(.05, .7, .25);
-        this.rudder.geometry.translate(0, .1, -.9);
         this.rudder.material = new MeshToonMaterial({ color: 0x603913 });
         this.rudder.mesh = new Mesh(this.rudder.geometry, this.rudder.material);
+        this.rudder.mesh.position.set(0, .1, -.9);
         this.rudder.mesh.castShadow = true;
         this.rudder.mesh.receiveShadow = true;
         this.add(this.rudder.mesh);
@@ -46,6 +46,10 @@ class Boat extends Group {
     }
 
     update(deltaT) {
+
+        // this.rudder.rotation = rot;
+        // this.rotation.y += rot / this.params.turningSpeed;
+
         let force = this.sail.update(deltaT);
         force.y = 0;
         this.velocity.multiplyScalar(1 - this.params.damping)
