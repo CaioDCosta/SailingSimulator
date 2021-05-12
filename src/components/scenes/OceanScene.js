@@ -48,19 +48,20 @@ class OceanScene extends THREE.Scene {
                 maxSize: 60,
                 g: 9.8,
                 waveHeightScaling: 1,
+                usePerlinNoiseInHeight: true,
                 waveHeightPerlinFreq: 0.05,
-                waveHeightPerlinAmplitude: 5,
+                waveHeightPerlinAmplitude: 1,
                 kappa0: 1,
                 kappaX: 1,
                 kappaY: 1,
                 depthDecay: 0.05,
                 medianWavelength: 5,
                 medianAmplitude: 0.5,
-                steepnessMultiplier: 0.5,
+                steepnessMultiplier: 0.75,
                 numTrains: 1,
                 lambda: 1,
                 waveSpeedFactor: 1,
-                holiness: 1
+                holiness: 1,
             },
             chunk: {
                 seafloor: {
@@ -138,8 +139,9 @@ class OceanScene extends THREE.Scene {
         wave.add(this.params.wave, 'steepnessMultiplier', 0, 1);
         wave.add(this.params.wave, 'g', 1, 40);
         wave.add(this.params.wave, 'waveHeightScaling', 0, 3);
-        wave.add(this.params.wave, 'waveHeightPerlinFreq', 0, 1);
-        wave.add(this.params.wave, 'waveHeightPerlinAmplitude', 0, 10);
+        wave.add(this.params.wave, 'usePerlinNoiseInHeight');
+        wave.add(this.params.wave, 'waveHeightPerlinFreq', 0, 0.1);
+        wave.add(this.params.wave, 'waveHeightPerlinAmplitude', 0, 5);
         wave.add(this.params.wave, 'minSize', 0, 100);
         wave.add(this.params.wave, 'maxSize', 0, 100);
         wave.add(this.params.wave, 'numTrains', 0, 5, 1);

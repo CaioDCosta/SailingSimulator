@@ -350,6 +350,8 @@ class Water extends THREE.Group {
         params.size.x = Math.floor(Math.random() * (this.params.maxSize - this.params.minSize) + this.params.minSize);
         params.size.z = Math.floor(Math.random() * (this.params.maxSize - params.size.x) + params.size.x);
 
+
+        // TODO Make sure trains can't spawn at edge that wind dir is pointing at
         const pos = Math.random() - 0.5;
         switch (Math.floor(Math.random() * 4)) {
             case 0:
@@ -391,14 +393,13 @@ class Water extends THREE.Group {
         for (let train of this.trains) {
             train.translate(x, z);
         }
-        // for (let i = 0; i < this.trains.length; i++) {
-        //     if (this.trains[i].translate(x, z)) {
-        //         this.generateNewTrain(i);
-        //     }
-        // }
-        // for (let train of this.backgroundTrains) {
-        //     train.translate(x, z);
-        // }
+        for (let i = 0; i < this.trains.length; i++) {
+            let train = this.trains[i];
+            train.translate(x, z)
+            if (Math.abs(train.params.position.x) > this.params.width / 2 || Math.abs(train.params.position.z) > this.params.height / 2) {
+                this.generateNewTrain(i);
+            }
+        }
     }
 }
 

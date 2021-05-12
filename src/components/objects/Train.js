@@ -80,16 +80,17 @@ class Train {
     }
 
     noiseAmp(x, z) {
-        let noise = Perlin.noise(x, z, 0,
-            this.params.heightFreq || this.sceneParams.waveHeightPerlinFreq);
+        let noise = Perlin.noise(x, 1.24, 2.415,
+            this.params.heightFreq || this.sceneParams.waveHeightPerlinFreq) + 1;
         let w = this.params.size.z / 4;
         const beta = -5 * Math.LN2 / w;
-        return Math.min(1, (1 + this.sceneParams.waveHeightPerlinAmplitude * noise) * Math.exp(beta * (Math.abs(x) - w)));
+        return (1 + this.sceneParams.waveHeightPerlinAmplitude * noise) * Math.min(1, Math.exp(beta * (Math.abs(x) - w)));
     }
 
     envelope(u, v) {
         let hole = this.holes[this.index(u, v)];
-        return Math.max(0, this.noiseAmp(u, v) * this.standardAmp(v) - this.sceneParams.holiness * this.params.amplitude * hole);
+        return Math.max(0, Math.min(1, (this.sceneParams.usePerlinNoiseInHeight ? this.noiseAmp(u, v) : this.standardAmp(u))
+            * this.standardAmp(v) - this.sceneParams.holiness * this.params.amplitude * hole));
     }
 
     getPos(x, z, y, vec, totalSteepness) {
