@@ -13,44 +13,53 @@ class Chunks extends Group {
             for (let c = -1; c <= 1; c++) {
                 const chunk = new Chunk(scene,
                     r * this.params.width * this.params.scale,
-                    c * this.params.height * this.params.scale,
-                    r * c == 0, r == 0 && c == 0);
+                    c * this.params.height * this.params.scale);
                 chunks.push(chunk);
             }
             this.array.push(chunks);
         }
         this.add(this.water, this.boundary, ...this.array.flat());
-        this.tween = new TWEEN.Tween(this.position);
+        this.translationX = 0;
+        this.translationZ = 0;
         this.scene = scene;
     }
 
     getSlope(x, z, directionVector) {
-        const X = Math.floor(x + this.params.width / 2);
-        const Z = Math.floor(z + this.params.height / 2);
-        let p = this.array[1][1].land.geometry.getAttribute('position').getY(Z * (this.params.height + 1) + X);
-        const fx = this.array[1][1].land.geometry.getAttribute('position').getY(Z * (this.params.height + 1) + X + 1) - p;
-        const fz = this.array[1][1].land.geometry.getAttribute('position').getY((Z + 1) * (this.params.height + 1) + X + 1) - p;
+        let ix = ((Math.floor((x + 1.5 * this.params.width - this.translationX) / this.params.width) % 3) + 3) % 3;
+        let iz = ((Math.floor((z + 1.5 * this.params.height - this.translationZ) / this.params.height) % 3) + 3) % 3;
+        let chunk = this.array[ix][iz];
+        let p = this.getYFromChunk(x, z, chunk);
+        let fx = this.getYFromChunk(x + 1, z, chunk) - p;
+        let fz = this.getYFromChunk(x, z + 1, chunk) - p;
         let xdir = Math.round(directionVector.x);
         let zdir = Math.round(directionVector.z);
         return fx * xdir + fz * zdir;
     }
 
-    getYFromGeometry(x, z, geometry) {
-        let X = Math.floor(x + this.params.width / 2);
-        let Z = Math.floor(z + this.params.height / 2);
-        return geometry.getAttribute('position').getY(Z * (this.params.height + 1) + X);
+    getYFromChunk(x, z, chunk) {
+        let [u, v] = chunk.worldXZToUV(x, z);
+        u = Math.floor(Math.min(chunk.params.width, Math.max(0, u)));
+        v = Math.floor(Math.min(chunk.params.height, Math.max(0, v)));
+        return chunk.land.geometry.getAttribute('position').getY(v * (this.params.height + 1) + u);
     }
 
     getDepth(x, z) {
-        return -this.getYFromGeometry(x, z, this.array[1][1].land.geometry);
+        let ix = ((Math.floor((x + 1.5 * this.params.width - this.translationX) / this.params.width) % 3) + 3) % 3;
+        let iz = ((Math.floor((z + 1.5 * this.params.height - this.translationZ) / this.params.height) % 3) + 3) % 3;
+        let chunk = this.array[ix][iz];
+        return -this.getYFromChunk(x, z, chunk);
     }
 
     getWaterHeight(x, z) {
-        return this.getYFromGeometry(x, z, this.water.geometry);
+        let X = (x + this.scene.params.wave.width / 2);
+        let Z = (z + this.scene.params.wave.height / 2);
+        return this.water.geometry.getAttribute('position').getY(Z * (this.scene.params.wave.height + 1) + X);
     }
 
     translate(x, z) {
         if (Math.abs(x) < Number.EPSILON && Math.abs(z) < Number.EPSILON) return;
+        this.translationX += x;
+        this.translationZ += z;
         for (let chunk of this.array.flat()) {
             chunk.translate(x, z);
         }

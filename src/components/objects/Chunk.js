@@ -47,6 +47,10 @@ class Chunk extends Group {
         return [(u - this.params.width / 2) * this.params.scale + this.x0, (v - this.params.height / 2) * this.params.scale + this.z0];
     }
 
+    worldXZToUV(x, z) {
+        return [(x - this.position.x) / this.params.scale + this.params.width / 2, (z - this.position.z) / this.params.scale + this.params.height / 2];
+    }
+
     uvToLocalXZ(u, v) {
         return [(u - this.params.width / 2) * this.params.scale, (v - this.params.height / 2) * this.params.scale];
     }

@@ -90,7 +90,7 @@ class Train {
     envelope(u, v) {
         let hole = this.holes[this.index(u, v)];
         return Math.max(0, Math.min(1, (this.sceneParams.usePerlinNoiseInHeight ? this.noiseAmp(u, v) : this.standardAmp(u))
-            * this.standardAmp(v) - this.sceneParams.holiness * this.params.amplitude * hole));
+            * this.standardAmp(v) - (this.params.holiness || this.sceneParams.holiness) * hole));
     }
 
     getPos(x, z, y, vec, totalSteepness) {
@@ -137,6 +137,7 @@ class Train {
     }
 
     translate(x, z) {
+        if (this.params.background) return;
         this.params.position.x += x;
         this.params.position.z += z;
     }

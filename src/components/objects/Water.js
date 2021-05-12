@@ -239,39 +239,20 @@ class Water extends THREE.Group {
         });
         this.mesh = new THREE.Mesh(this.geometry, this.material);
 
-        let params1 = {
-            position: new THREE.Vector3(0, 0, 0),
-            size: new THREE.Vector3(200, 0, 200),
-            baseHeading: this.scene.state.windHeading - Math.random() * Math.PI / 4,
-            steepness: 1,
-            wavelengthWindFactor: 1,
-            baseWavelength: 5,
-            direction: new THREE.Vector3(),
-            numHoles: 500,
-        }
-        let params2 = {
-            position: new THREE.Vector3(0, 0, 0),
-            size: new THREE.Vector3(200, 0, 200),
-            baseHeading: this.scene.state.windHeading + Math.random() * Math.PI / 4,
-            steepness: 1,
-            wavelengthWindFactor: 1,
-            baseWavelength: 5,
-            direction: new THREE.Vector3(),
-            numHoles: 500,
-        }
-        let params3 = {
+        let params = {
             position: new THREE.Vector3(0, 0, 0),
             size: new THREE.Vector3(200, 0, 200),
             baseHeading: this.scene.state.windHeading,
-            steepness: 0.75,
+            steepness: 0.5,
             wavelengthWindFactor: 1,
-            baseWavelength: 10,
+            baseWavelength: 3,
+            heightFreq: 1,
             direction: new THREE.Vector3(),
             numHoles: 500,
+            holiness: 10,
+            background: true,
         }
-        this.trains = [new Train(this.scene, params1)];
-        this.trains.push(new Train(this.scene, params2));
-        this.trains.push(new Train(this.scene, params3));
+        this.trains = [new Train(this.scene, params)];
 
         this.numBackgroundTrains = this.trains.length;
 
@@ -396,7 +377,14 @@ class Water extends THREE.Group {
         for (let i = 0; i < this.trains.length; i++) {
             let train = this.trains[i];
             train.translate(x, z)
-            if (Math.abs(train.params.position.x) > this.params.width / 2 || Math.abs(train.params.position.z) > this.params.height / 2) {
+
+            if (train.params.background) {
+                if (train.params.position.x > this.params.width / 2) train.params.position.x -= this.params.width;
+                else if (train.params.position.x < -this.params.width / 2) train.params.position.x += this.params.width;
+                if (train.params.position.z > this.params.height / 2) train.params.position.z -= this.params.height;
+                else if (train.params.position.z < -this.params.height / 2) train.params.position.z += this.params.height;
+            }
+            else if (Math.abs(train.params.position.x) > this.params.width / 2 || Math.abs(train.params.position.z) > this.params.height / 2) {
                 this.generateNewTrain(i);
             }
         }
