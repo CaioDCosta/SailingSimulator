@@ -191,8 +191,8 @@ class Sail extends Group {
         this.add(this.mast.mesh);
         this.add(this.boom1.mesh);
         this.add(this.boom2.mesh);
-
-        this.translateZ(.25);
+        this.rotation.y += Math.PI;
+        this.translateZ(0.5);
 
         // Empty initial lists
         let particles = [];

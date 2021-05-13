@@ -3,7 +3,7 @@ import { Group } from "three";
 import { TWEEN } from "three/examples/jsm/libs/tween.module.min";
 
 class Chunk extends Group {
-    constructor(scene, x0 = 0, z0 = 0) {
+    constructor(scene, x0 = 0, z0 = 0, noIslands) {
         super();
 
         this.params = scene.params.chunk;
@@ -12,7 +12,7 @@ class Chunk extends Group {
         this.position.z = z0;
         this.x0 = x0;
         this.z0 = z0;
-        this.land = new Land(this);
+        this.land = new Land(this, noIslands);
         this.add(this.land);
 
         this.castShadow = true;

@@ -39,10 +39,10 @@ class OceanScene extends THREE.Scene {
             },
             boat: {
                 mass: 1,
-                forceMultiplier: 1,
-                velocityMultiplier: 2,
+                forceMultiplier: 2,
+                velocityMultiplier: 1,
                 damping: 0.5,
-                turningSpeed: 0,
+                turningSpeed: 0.1,
             },
             wave: {
                 enabled: true,
@@ -65,7 +65,7 @@ class OceanScene extends THREE.Scene {
                 numTrains: 0,
                 lambda: 1,
                 waveSpeedFactor: 1,
-                holiness: 1,
+                holiness: 4,
             },
             chunk: {
                 seafloor: {
@@ -130,7 +130,7 @@ class OceanScene extends THREE.Scene {
         this.state.gui.add(this.params.boat, 'forceMultiplier', 1, 100);
         this.state.gui.add(this.params.boat, 'velocityMultiplier', 0, 3);
         this.state.gui.add(this.params.boat, 'damping', 0, 1);
-        this.state.gui.add(this.params.boat, 'turningSpeed', 0, .1);
+        this.state.gui.add(this.params.boat, 'turningSpeed', 0.01, 1);
         this.state.gui.add(this.params, 'fog').onChange((showFog) => {
             this.fog.near = showFog ? near : 20000;
             this.fog.far = showFog ? far : 20000;
@@ -203,18 +203,11 @@ class OceanScene extends THREE.Scene {
         for (const obj of this.state.updateList) {
             obj.update(deltaT);
         }
-
-        const rotation = this.controls.getAzimuthalAngle() - this.controls.minAzimuthAngle - Math.PI / 4;
-        this.boat.rudder.mesh.rotation.y += (this.boat.rudder.mesh.rotation.y - rotation) * this.params.boat.turningSpeed;
-        this.boat.rotation.y += (this.boat.rudder.mesh.rotation.y - this.boat.rotation.y) * (1 + this.boat.velocity.length());
-        // this.boat.rotation.y %= (2 * Math.PI);
-        this.boat.rudder.mesh.rotation.y -= rotation * (0.1 + this.params.boat.turningSpeed);
-        this.controls.target.set(5 * Math.sin(this.boat.rotation.y), 0, 5 * Math.cos(this.boat.rotation.y));
-        this.controls.minAzimuthAngle = (3 * Math.PI / 4 + this.boat.rotation.y) % (2 * Math.PI);
-        this.controls.maxAzimuthAngle = this.controls.minAzimuthAngle + Math.PI / 2;
-        this.controls.update();
-
         let time = this.state.time;
+        const camRotation = this.controls.getAzimuthalAngle();
+        this.boat.rudder.mesh.rotation.y = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camRotation - this.boat.rotation.y));
+        const deltaRot = this.boat.rotation.y + (camRotation - this.boat.rotation.y) * this.params.boat.turningSpeed * this.params.interval;
+        this.boat.rotTween.to({ y: deltaRot }, this.params.interval).start(time);
         let offset = Perlin.noise(time * 1.248, time * 3.456, time * 2.122, 0.05) / 10 - .15;
         this.boat.tween.to({ y: this.chunks.getWaterHeight(0, 0) + offset }, this.params.interval).start(time);
         this.chunks.translate(-this.boat.velocity.x, -this.boat.velocity.z);

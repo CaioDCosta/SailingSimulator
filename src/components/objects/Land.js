@@ -3,12 +3,12 @@ import { Perlin } from 'utils';
 import { Group } from 'three';
 
 class Land extends Group {
-    constructor(parent) {
+    constructor(parent, noIslands) {
         // Call parent Group() constructor
         super();
 
         this.params = parent.params;
-        this.islands = this.generateIslands(true);
+        this.islands = noIslands ? [] : this.generateIslands(true);
         this.chunk = parent;
 
         const colors = new Uint8Array(5);

@@ -13,7 +13,7 @@ class Chunks extends Group {
             for (let c = -1; c <= 1; c++) {
                 const chunk = new Chunk(scene,
                     r * this.params.width * this.params.scale,
-                    c * this.params.height * this.params.scale);
+                    c * this.params.height * this.params.scale, r == 0 && c == 0);
                 chunks.push(chunk);
             }
             this.array.push(chunks);

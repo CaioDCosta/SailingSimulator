@@ -39,11 +39,8 @@ const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
 controls.enablePan = false;
 controls.minDistance = 1;
-controls.maxDistance = 10;
-controls.target.set(0, 0, 5);
+controls.maxDistance = 100;
 controls.maxPolarAngle = Math.PI / 2 - .1;
-controls.minAzimuthAngle = - 5 * Math.PI / 4;
-controls.maxAzimuthAngle = controls.minAzimuthAngle + Math.PI / 2;
 controls.update();
 
 
@@ -53,8 +50,6 @@ const interval = 1 / 30; // Target 60 FPS
 let time = 0;
 
 const scene = new OceanScene(interval, controls, camera);
-
-
 
 const stats = new Stats();
 document.body.appendChild(stats.domElement);

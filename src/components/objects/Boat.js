@@ -3,6 +3,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { Sail } from 'objects';
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min';
 import MODEL from './res/boat.glb';
+import { Vector2 } from 'three';
 
 class Boat extends Group {
     constructor(scene) {
@@ -33,14 +34,18 @@ class Boat extends Group {
 
         this.sail = new Sail(this);
         this.tween = new TWEEN.Tween(this.position).easing(TWEEN.Easing.Elastic.InOut);
+        this.rotTween = new TWEEN.Tween(this.rotation).easing(TWEEN.Easing.Elastic.InOut);
         this.rudder = {};
         this.rudder.geometry = new BoxGeometry(.05, .7, .25);
         this.rudder.material = new MeshToonMaterial({ color: 0x603913 });
         this.rudder.mesh = new Mesh(this.rudder.geometry, this.rudder.material);
-        this.rudder.mesh.position.set(0, .1, -.9);
+        this.rudder.mesh.position.set(0, .1, .9);
         this.rudder.mesh.castShadow = true;
         this.rudder.mesh.receiveShadow = true;
-        this.add(this.rudder.mesh);
+        this.rudder.tween = new TWEEN.Tween(this.rudder.mesh.rotation)
+
+        this.forward = new Vector2();
+        this.attach(this.rudder.mesh);
         // Add self to parent's update list
         scene.addToUpdateList(this);
     }
@@ -49,7 +54,7 @@ class Boat extends Group {
 
         // this.rudder.rotation = rot;
         // this.rotation.y += rot / this.params.turningSpeed;
-
+        // this.rudder.mesh.rotation.y *= 0.8;
         let force = this.sail.update(deltaT);
         force.y = 0;
         this.velocity.multiplyScalar(1 - this.params.damping)
