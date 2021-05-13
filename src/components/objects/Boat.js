@@ -14,7 +14,10 @@ class Boat extends Group {
         const loader = new GLTFLoader();
         this.params = scene.params.boat;
         this.velocity = new Vector3();
-        this.previous = new Vector3();
+        this.acceleration = new Vector3();
+        this.prevAcceleration = new Vector3();
+        this.drag = new Vector3();
+        this.zero = new Vector3();
         this.scene = scene;
 
         this.name = 'boat';
@@ -51,15 +54,13 @@ class Boat extends Group {
     }
 
     update(deltaT) {
-
-        // this.rudder.rotation = rot;
-        // this.rotation.y += rot / this.params.turningSpeed;
-        // this.rudder.mesh.rotation.y *= 0.8;
-        let force = this.sail.update(deltaT);
-        force.y = 0;
-        this.velocity.multiplyScalar(1 - this.params.damping)
-            .add(force.multiplyScalar(this.params.forceMultiplier * deltaT * deltaT / this.params.mass));
-        this.velocity.multiplyScalar(this.params.velocityMultiplier);
+        this.oldAcceleration = this.acceleration;
+        this.sail.update(deltaT, this.acceleration);
+        this.acceleration.set(Math.sin(this.rotation.y - Math.PI), 0, Math.cos(this.rotation.y - Math.PI));
+        this.acceleration.multiplyScalar(Math.max(-0.1, this.acceleration.dot(this.scene.state.windDirection)) * this.scene.state.windSpeed);
+        this.acceleration.divideScalar(this.params.mass);
+        this.oldAcceleration.add(this.acceleration).multiplyScalar(deltaT / 2);
+        this.velocity.add(this.oldAcceleration).clampScalar(-this.params.maxVelocity, this.params.maxVelocity).multiplyScalar(1 - this.params.drag);
     }
 }
 

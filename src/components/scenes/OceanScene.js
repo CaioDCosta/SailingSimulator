@@ -4,6 +4,8 @@ import { Boat, Chunks } from 'objects';
 import { Sun } from 'lights';
 import { Perlin } from 'utils';
 import TEXTURE from '../objects/res/ToonEquirectangular.png';
+import { ArrowHelper } from 'three';
+import { Vector3 } from 'three';
 
 class OceanScene extends THREE.Scene {
     constructor(interval, controls, camera) {
@@ -39,8 +41,8 @@ class OceanScene extends THREE.Scene {
             boat: {
                 mass: 1,
                 forceMultiplier: 2,
-                velocityMultiplier: 1,
-                damping: 0.5,
+                maxVelocity: 10,
+                drag: 0.1,
                 turningSpeed: .75,
             },
             wave: {
@@ -59,7 +61,7 @@ class OceanScene extends THREE.Scene {
                 modelBreaking: false,
                 modelDepth: false,
                 steepnessMultiplier: 0.75,
-                numTrains: 0,
+                numTrains: 1,
                 lambda: 1,
                 waveSpeedFactor: 1,
                 holiness: 2,
@@ -109,7 +111,6 @@ class OceanScene extends THREE.Scene {
         this.boat = new Boat(this);
         this.sun = new Sun(this);
         this.chunks = new Chunks(this);
-        // this.chunks.water.material.envMap = textureEquirec;
 
         let near = 10;
         let far = this.params.chunk.width * 1.5;
@@ -124,8 +125,8 @@ class OceanScene extends THREE.Scene {
         this.state.gui.add(this.state, 'windHeading', 0, 2 * Math.PI);
         this.state.gui.add(this.params.boat, 'mass', 0.01, 1);
         this.state.gui.add(this.params.boat, 'forceMultiplier', 1, 100);
-        this.state.gui.add(this.params.boat, 'velocityMultiplier', 0, 3);
-        this.state.gui.add(this.params.boat, 'damping', 0, 1);
+        this.state.gui.add(this.params.boat, 'maxVelocity', 0, 20);
+        this.state.gui.add(this.params.boat, 'drag', 0, 1);
         this.state.gui.add(this.params.boat, 'turningSpeed', 0.01, 2);
         this.state.gui.add(this.params, 'fog').onChange((showFog) => {
             this.fog.near = showFog ? near : 20000;
@@ -185,6 +186,11 @@ class OceanScene extends THREE.Scene {
         island.add(this.params.chunk.island, 'amp', 0, 20).onChange((x) => updateIslands());
         island.add(this.params.chunk.island, 'thresholdMin', 0, 100);
         island.add(this.params.chunk.island, 'thresholdMax', 0, 100);
+
+        this.ah = new ArrowHelper(new Vector3(), new Vector3(0, 3, 0));
+        this.ah2 = new ArrowHelper(new Vector3(), new Vector3(0, 5, 0), 10, 0xff0000);
+
+        this.add(this.ah, this.ah2);
     }
 
     addToUpdateList(object) {
@@ -193,7 +199,8 @@ class OceanScene extends THREE.Scene {
 
     update(deltaT) {
         this.state.windDirection.set(Math.cos(this.state.windHeading), 0, Math.sin(this.state.windHeading));
-        // this.ah.setDirection(this.state.windDirection);
+        this.ah.setDirection(this.state.windDirection);
+        this.ah2.setDirection(new THREE.Vector3(Math.sin(this.boat.rotation.y - Math.PI), 0, Math.cos(this.boat.rotation.y - Math.PI)));
         // Call update for each object in the updateList
         for (const obj of this.state.updateList) {
             obj.update(deltaT);
@@ -205,7 +212,7 @@ class OceanScene extends THREE.Scene {
         this.boat.rotTween.to({ y: deltaRot }, this.params.interval).start(time);
         let offset = Perlin.noise(time * 1.248, time * 3.456, time * 2.122, 0.05) / 10 - .15;
         this.boat.tween.to({ y: this.chunks.getWaterHeight(0, 0) + offset }, this.params.interval).start(time);
-        this.chunks.translate(-this.boat.velocity.x, -this.boat.velocity.z);
+        this.chunks.translate(-this.boat.velocity.x * deltaT, -this.boat.velocity.z * deltaT);
         this.state.time += deltaT;
     }
 }

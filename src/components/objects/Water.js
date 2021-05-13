@@ -176,8 +176,8 @@ class Water extends THREE.Group {
     }
 
     translate(x, z) {
-        this.material.bumpMap.offset.x += 16 * x / this.params.width;
-        this.material.bumpMap.offset.y += 16 * z / this.params.height;
+        this.material.bumpMap.offset.x -= 16 * x / this.params.width;
+        this.material.bumpMap.offset.y -= 16 * z / this.params.height;
         for (let i = 0; i < this.trains.length; i++) {
             let train = this.trains[i];
             train.translate(x, z)

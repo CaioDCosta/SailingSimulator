@@ -94,7 +94,12 @@ class Train {
 
     envelope(u, v) {
         return Math.max(0, Math.min(1, (this.sceneParams.usePerlinNoiseInHeight ? this.noiseAmp(u, this.params.size.x) : this.standardAmp(u, this.params.size.x))
-            * this.standardAmp(v, 0.75 * this.params.size.z)));
+            * this.standardAmp(v, this.params.size.z)));
+    }
+
+    backgroundEnvelope(x, z) {
+        return Math.max(0, Math.min(1, (this.sceneParams.usePerlinNoiseInHeight ? this.noiseAmp(x, this.sceneParams.width) : this.standardAmp(x, this.sceneParams.width))
+            * this.standardAmp(z, this.sceneParams.height)));
     }
 
     getPosBackground(x, z, y, vec, totalSteepness) {
@@ -138,11 +143,9 @@ class Train {
             this.getPosBackground(x, z, y, vec, totalSteepness);
             return;
         }
-        const [u, v] = this.toLocal(x + this.offset.x, z + this.offset.z);
+        const [u, v] = this.toLocal(x - this.offset.x, z - this.offset.z);
         if (Math.abs(u) > this.params.size.x / 2 || Math.abs(v) > this.params.size.z / 2) return;
-        const r = this.calcHoles(this.envelope(u, v), u, v) * this.params.amplitude / totalSteepness;
-        // vec.y += r;
-        // return;
+        const r = this.calcHoles(this.backgroundEnvelope(x, z) * this.envelope(u, v), u, v) * this.params.amplitude / totalSteepness;
         if (Math.abs(r) < 0.01) return;
 
         const depth = this.scene.chunks.getDepth(x, z);
@@ -152,17 +155,22 @@ class Train {
         const sinPhi = Math.sin(phi);
         const cosPhi = Math.cos(phi);
 
-        const slope = this.scene.chunks.getSlope(x, z, this.params.direction);
-        const alpha = Math.max(0, Math.min(1, slope * Math.exp(-depth * this.sceneParams.kappa0)));
-        const sinAlpha = Math.sin(alpha);
-        const cosAlpha = Math.cos(alpha);
-        const sx = Math.max(0, Math.min(1, 1 / (1 - Math.exp(-depth * this.sceneParams.kappaX))));
-        const sy = Math.max(0, Math.min(1, sx * (1 - Math.exp(-depth * this.sceneParams.kappaY))));
+        let forward, up;
 
-        const forward = r * cosAlpha * sx * sinPhi + sinAlpha * sy * cosPhi;
-        const up = r * cosAlpha * sy * cosPhi - sinAlpha * sx * sinPhi;
-        // const forward = r * sinPhi;
-        // const up = r * cosPhi;   
+        if (this.sceneParams.modelBreaking) {
+            const slope = this.scene.chunks.getSlope(x, z, this.params.direction);
+            const alpha = Math.max(0, Math.min(1, slope * Math.exp(-depth * this.sceneParams.kappa0)));
+            const sinAlpha = Math.sin(alpha);
+            const cosAlpha = Math.cos(alpha);
+            const sx = Math.max(0, Math.min(1, 1 / (1 - Math.exp(-depth * this.sceneParams.kappaX))));
+            const sy = Math.max(0, Math.min(1, sx * (1 - Math.exp(-depth * this.sceneParams.kappaY))));
+
+            forward = r * cosAlpha * sx * sinPhi + sinAlpha * sy * cosPhi;
+            up = r * cosAlpha * sy * cosPhi - sinAlpha * sx * sinPhi;
+        } else {
+            forward = r * sinPhi;
+            up = r * cosPhi;
+        }
         vec.x += forward * this.params.direction.x;
         vec.y += up;
         vec.z += forward * this.params.direction.z;

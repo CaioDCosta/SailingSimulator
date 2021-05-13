@@ -7,7 +7,6 @@ class Particle {
         this.previous = vec; // previous
         this.original = vec; // original
         this.netForce = new THREE.Vector3(); // net force acting on particle
-        this.oldNetForce = new THREE.Vector3();
         this.mass = mass; // mass of the particle
     }
 
@@ -34,7 +33,7 @@ class Particle {
     // timestep deltaT.
     // Params:
     // * deltaT: Number - the length of time dt over which to integrate
-    integrate(deltaT) {
+    integrate(deltaT, vec) {
         const DAMPING = 0.3;
         let newPos = new THREE.Vector3()
             .subVectors(this.position, this.previous)
@@ -43,9 +42,8 @@ class Particle {
         newPos.add(this.position);
         this.previous = this.position;
         this.position = newPos;
-        this.oldNetForce.copy(this.netForce);
+        vec.add(this.netForce);
         this.netForce.set(0, 0, 0);
-        return this.oldNetForce;
     }
 
     handleBoxCollision(bbox) {
@@ -247,7 +245,7 @@ class Sail extends Group {
     }
 
     applyWind() {
-        let windForce = this.scene.state.windDirection.applyEuler(this.parent.rotation).normalize().multiplyScalar(this.scene.state.windSpeed);
+        let windForce = this.scene.state.windDirection.clone().applyEuler(this.parent.rotation).normalize().multiplyScalar(this.scene.state.windSpeed);
 
         // Apply the wind force to the cloth particles
         let faces = this.sail.geometry.faces;
@@ -277,14 +275,14 @@ class Sail extends Group {
         }
     }
 
-    update(deltaT) {
+    update(deltaT, vec) {
 
         this.applyForces();
-        let force = new THREE.Vector3();
+        vec.set(0, 0, 0);
         for (let particle of this.particles) {
-            force.add(particle.integrate(deltaT));
+            particle.integrate(deltaT, vec);
         }
-
+        vec.divideScalar(this.w * this.h);
         this.handleCollisions();
 
         for (let x = 0; x <= this.w; x++) {
@@ -310,7 +308,6 @@ class Sail extends Group {
         this.sail.geometry.computeVertexNormals();
         this.sail.geometry.normalsNeedUpdate = true;
         this.sail.geometry.verticesNeedUpdate = true;
-        return force;
     }
 
     enforceConstraints() {
