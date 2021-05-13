@@ -107,21 +107,27 @@ class Train {
         const depth = this.scene.chunks.getDepth(x, z);
         if (depth < 0) return;
 
-        const phi = this.kappaInf * u - this.params.freq * this.time - this.sceneParams.lambda * y * this.deltaT;
+        const kappa = this.sceneParams.modelDepth ? this.kappaInf / Math.sqrt(Math.tanh(this.kappaInf * depth)) : this.kappaInf;
+        const phi = kappa * u - this.params.freq * this.time - this.sceneParams.lambda * y * this.deltaT;
         const sinPhi = Math.sin(phi);
         const cosPhi = Math.cos(phi);
 
-        const slope = this.scene.chunks.getSlope(x, z, this.params.direction);
-        const alpha = Math.max(0, Math.min(1, slope * Math.exp(-depth * this.sceneParams.kappa0)));
-        const sinAlpha = Math.sin(alpha);
-        const cosAlpha = Math.cos(alpha);
-        const sx = Math.max(0, Math.min(1, 1 / (1 - Math.exp(-depth * this.sceneParams.kappaX))));
-        const sy = Math.max(0, Math.min(1, sx * (1 - Math.exp(-depth * this.sceneParams.kappaY))));
+        let forward, up;
 
-        const forward = r * cosAlpha * sx * sinPhi + sinAlpha * sy * cosPhi;
-        const up = r * cosAlpha * sy * cosPhi - sinAlpha * sx * sinPhi;
-        // const forward = r * sinPhi;
-        // const up = r * cosPhi;   
+        if (this.sceneParams.modelBreaking) {
+            const slope = this.scene.chunks.getSlope(x, z, this.params.direction);
+            const alpha = Math.max(0, Math.min(1, slope * Math.exp(-depth * this.sceneParams.kappa0)));
+            const sinAlpha = Math.sin(alpha);
+            const cosAlpha = Math.cos(alpha);
+            const sx = Math.max(0, Math.min(1, 1 / (1 - Math.exp(-depth * this.sceneParams.kappaX))));
+            const sy = Math.max(0, Math.min(1, sx * (1 - Math.exp(-depth * this.sceneParams.kappaY))));
+            forward = r * cosAlpha * sx * sinPhi + sinAlpha * sy * cosPhi;
+            up = r * cosAlpha * sy * cosPhi - sinAlpha * sx * sinPhi;
+        } else {
+            forward = r * sinPhi;
+            up = r * cosPhi;
+        }
+
         vec.x += forward * this.params.direction.x;
         vec.y += up;
         vec.z += forward * this.params.direction.z;
@@ -141,11 +147,6 @@ class Train {
 
         const depth = this.scene.chunks.getDepth(x, z);
         if (depth < 0) return;
-
-        // const i = this.index(u, v);
-        // this.depths[i] *= 0.95;
-        // this.depths[i] += this.kappaInf * (-1 + 1 / Math.sqrt(Math.tanh(this.kappaInf * depth * this.sceneParams.depthDecay)))
-        //     * this.scene.state.windSpeed * this.scene.state.windDirection.dot(this.params.direction) * this.deltaT;
 
         const phi = this.kappaInf * u - this.params.freq * this.time - this.sceneParams.lambda * y * this.deltaT;
         const sinPhi = Math.sin(phi);
@@ -189,11 +190,10 @@ class Train {
         this.params.headingOffset += deltaHeading;
         const heading = this.params.baseHeading + this.params.headingOffset;
         this.params.direction.set(Math.cos(heading), 0, Math.sin(heading));
-        // this.params.speed = Math.sqrt(this.params.g * this.params.wavelength / (2 * Math.PI))
         if (!this.params.background) {
             const speed = this.params.freq * this.params.wavelength;
-            this.params.position.x += speed * deltaT * this.params.direction.x;
-            this.params.position.z += speed * deltaT * this.params.direction.z;
+            this.params.position.x += speed / 2 * deltaT * this.params.direction.x;
+            this.params.position.z += speed / 2 * deltaT * this.params.direction.z;
         }
     }
 }

@@ -17,7 +17,6 @@ class OceanScene extends THREE.Scene {
         this.state = {
             time: 0,
             gui: new Dat.GUI(), // Create GUI for scene
-            rotationSpeed: 0,
             windHeading: 0, // Wind direction in radians
             windDirection: new THREE.Vector3(),
             windSpeed: 5,
@@ -42,30 +41,28 @@ class OceanScene extends THREE.Scene {
                 forceMultiplier: 2,
                 velocityMultiplier: 1,
                 damping: 0.5,
-                turningSpeed: 0.1,
+                turningSpeed: .75,
             },
             wave: {
-                enabled: true,
+                medianWavelength: 10,
                 width: 200,
                 height: 200,
                 minSize: 40,
                 maxSize: 60,
                 g: 9.8,
-                waveHeightScaling: 1,
                 usePerlinNoiseInHeight: true,
                 waveHeightPerlinFreq: 0.05,
                 waveHeightPerlinAmplitude: 1,
                 kappa0: 1,
                 kappaX: 1,
                 kappaY: 1,
-                depthDecay: 0.05,
-                medianWavelength: 5,
-                medianAmplitude: 0.5,
+                modelBreaking: false,
+                modelDepth: false,
                 steepnessMultiplier: 0.75,
                 numTrains: 0,
                 lambda: 1,
                 waveSpeedFactor: 1,
-                holiness: 4,
+                holiness: 2,
             },
             chunk: {
                 seafloor: {
@@ -123,35 +120,33 @@ class OceanScene extends THREE.Scene {
 
 
         // Populate GUI
-        this.state.gui.add(this.state, 'rotationSpeed', -5, 5);
         this.state.gui.add(this.state, 'windSpeed', 0.01, 20);
         this.state.gui.add(this.state, 'windHeading', 0, 2 * Math.PI);
         this.state.gui.add(this.params.boat, 'mass', 0.01, 1);
         this.state.gui.add(this.params.boat, 'forceMultiplier', 1, 100);
         this.state.gui.add(this.params.boat, 'velocityMultiplier', 0, 3);
         this.state.gui.add(this.params.boat, 'damping', 0, 1);
-        this.state.gui.add(this.params.boat, 'turningSpeed', 0.01, 1);
+        this.state.gui.add(this.params.boat, 'turningSpeed', 0.01, 2);
         this.state.gui.add(this.params, 'fog').onChange((showFog) => {
             this.fog.near = showFog ? near : 20000;
             this.fog.far = showFog ? far : 20000;
         });
         let wave = this.state.gui.addFolder('Wave');
-        wave.add(this.params.wave, 'medianWavelength', 0.1, 50);
-        wave.add(this.params.wave, 'medianAmplitude', 0.1, 5);
         wave.add(this.params.wave, 'steepnessMultiplier', 0, 1);
-        wave.add(this.params.wave, 'g', 1, 40);
-        wave.add(this.params.wave, 'waveHeightScaling', 0, 3);
+        wave.add(this.params.wave, 'modelDepth');
+        wave.add(this.params.wave, 'modelBreaking');
         wave.add(this.params.wave, 'usePerlinNoiseInHeight');
         wave.add(this.params.wave, 'waveHeightPerlinFreq', 0, 0.1);
         wave.add(this.params.wave, 'waveHeightPerlinAmplitude', 0, 5);
+        wave.add(this.params.wave, 'g', 1, 40);
         wave.add(this.params.wave, 'minSize', 0, 100);
         wave.add(this.params.wave, 'maxSize', 0, 100);
+        wave.add(this.params.wave, 'medianWavelength', 0.1, 100);
         wave.add(this.params.wave, 'numTrains', 0, 5, 1);
         wave.add(this.params.wave, 'lambda', 0, 5);
         wave.add(this.params.wave, 'kappaX', 0.01, 1);
         wave.add(this.params.wave, 'kappaY', 0.01, 1);
         wave.add(this.params.wave, 'kappa0', 0.01, 1);
-        wave.add(this.params.wave, 'depthDecay', 0.01, .2);
         wave.add(this.params.wave, 'waveSpeedFactor', 0, 5);
         wave.add(this.params.wave, 'holiness', 0, 5);
 

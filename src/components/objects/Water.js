@@ -120,14 +120,14 @@ class Water extends THREE.Group {
                 let i = this.index(u, v);
                 let x = u - this.params.width / 2,
                     z = v - this.params.height / 2;
-                let y = Math.max(0, this.geometry.getAttribute('position').getY(i)) / this.params.waveHeightScaling;
+                let y = Math.max(0, this.geometry.getAttribute('position').getY(i));
                 vec.set(0, 0, 0);
                 let totalSteepness = 0;
                 for (let train of this.trains) {
                     if (train.contains(x, z)) totalSteepness += train.params.steepness;
                 }
                 for (let train of this.trains) {
-                    train.getPosBackground(x, z, y, vec, totalSteepness);
+                    train.getPos(x, z, y, vec, totalSteepness);
                 }
                 this.geometry.attributes.position.setXYZ(i, x + checkNumber(vec.x), checkNumber(vec.y), z + checkNumber(vec.z));
             }
@@ -149,24 +149,9 @@ class Water extends THREE.Group {
 
         // TODO Make sure trains can't spawn at edge that wind dir is pointing at
         const pos = Math.random() - 0.5;
-        switch (Math.floor(Math.random() * 4)) {
-            case 0:
-                params.position.x = this.params.width / 2 - params.size.x / 2;
-                params.position.z = pos * (this.params.height - params.size.z / 2);
-                break;
-            case 1:
-                params.position.x = -this.params.width / 2 + params.size.x / 2;
-                params.position.z = pos * (this.params.height - params.size.z / 2);
-                break;
-            case 2:
-                params.position.x = pos * (this.params.width - + params.size.x / 2);
-                params.position.z = this.params.height / 2 - params.size.z / 2;
-                break;
-            case 3:
-            default:
-                params.position.x = pos * (this.params.width - + params.size.x / 2);
-                params.position.z = -this.params.height / 2 + params.size.z / 2;
-        }
+        params.baseHeading = this.scene.state.windHeading + ((Math.random() - 0.5) * Math.PI / 4);
+        params.position.x = -Math.cos(params.baseHeading) * this.params.width / 2;
+        params.position.z = -Math.sin(params.baseHeading) * this.params.height / 2;
 
         const box = new THREE.Box3();
         box.setFromCenterAndSize(params.position, params.size);
@@ -176,10 +161,9 @@ class Water extends THREE.Group {
 
 
         params.baseWavelength = this.params.medianWavelength * (Math.random() * 3 / 2 + .5);
-        params.wavelengthWindFactor = 1.1;
+        params.wavelengthWindFactor = 1.3;
         params.steepness = 1;
-        params.baseHeading = this.scene.state.windHeading;//+ ((Math.random() - 0.5) / (2 * Math.PI));
-        params.numHoles = 30;
+        params.numHoles = 50;
         let train = new Train(this.scene, params);
 
         if (index < 0 || index >= this.trains.length) {
@@ -197,14 +181,7 @@ class Water extends THREE.Group {
         for (let i = 0; i < this.trains.length; i++) {
             let train = this.trains[i];
             train.translate(x, z)
-
-            if (train.params.background) {
-                // if (train.params.position.x > this.params.width / 2) train.params.position.x -= this.params.width;
-                // else if (train.params.position.x < -this.params.width / 2) train.params.position.x += this.params.width;
-                // if (train.params.position.z > this.params.height / 2) train.params.position.z -= this.params.height;
-                // else if (train.params.position.z < -this.params.height / 2) train.params.position.z += this.params.height;
-            }
-            else if (Math.abs(train.params.position.x) + train.size.x / 2 > this.params.width / 2 || Math.abs(train.params.position.z) + train.size.z / 2 > this.params.height / 2) {
+            if (Math.abs(train.params.position.x) > this.params.width / 2 || Math.abs(train.params.position.z) > this.params.height / 2) {
                 this.generateNewTrain(i);
             }
         }
