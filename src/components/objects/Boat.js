@@ -55,7 +55,7 @@ class Boat extends Group {
 
     update(deltaT) {
         this.oldAcceleration = this.acceleration;
-        this.sail.update(deltaT, this.acceleration);
+        this.sail.update(deltaT);
         this.acceleration.set(Math.sin(this.rotation.y - Math.PI), 0, Math.cos(this.rotation.y - Math.PI));
         this.acceleration.multiplyScalar(Math.max(-0.1, this.acceleration.dot(this.scene.state.windDirection)) * this.scene.state.windSpeed);
         this.acceleration.divideScalar(this.params.mass);

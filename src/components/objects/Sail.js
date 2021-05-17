@@ -1,5 +1,7 @@
 import { Group } from 'three';
 import * as THREE from 'three';
+import { Euler } from 'three';
+import { TWEEN } from 'three/examples/jsm/libs/tween.module.min';
 
 class Particle {
     constructor(vec, mass) {
@@ -33,7 +35,7 @@ class Particle {
     // timestep deltaT.
     // Params:
     // * deltaT: Number - the length of time dt over which to integrate
-    integrate(deltaT, vec) {
+    integrate(deltaT) {
         const DAMPING = 0.3;
         let newPos = new THREE.Vector3()
             .subVectors(this.position, this.previous)
@@ -42,7 +44,6 @@ class Particle {
         newPos.add(this.position);
         this.previous = this.position;
         this.position = newPos;
-        vec.add(this.netForce);
         this.netForce.set(0, 0, 0);
     }
 
@@ -192,6 +193,9 @@ class Sail extends Group {
         this.rotation.y += Math.PI;
         this.translateZ(0.5);
 
+        this.euler = new Euler();
+        this.tween = new TWEEN.Tween(this.rotation);
+
         // Empty initial lists
         let particles = [];
         let constraints = [];
@@ -245,8 +249,9 @@ class Sail extends Group {
     }
 
     applyWind() {
-        let windForce = this.scene.state.windDirection.clone().applyEuler(this.parent.rotation).normalize().multiplyScalar(this.scene.state.windSpeed);
-
+        this.euler.set(0, this.parent.rotation.y - this.rotation.y, 0);
+        let windForce = this.scene.state.windDirection.clone().applyEuler(this.euler).normalize().multiplyScalar(this.scene.state.windSpeed);
+        // let windForce = this.scene.state.windDirection.clone().multiplyScalar(this.scene.state.windSpeed);
         // Apply the wind force to the cloth particles
         let faces = this.sail.geometry.faces;
         for (let face of faces) {
@@ -275,14 +280,12 @@ class Sail extends Group {
         }
     }
 
-    update(deltaT, vec) {
+    update(deltaT) {
 
         this.applyForces();
-        vec.set(0, 0, 0);
         for (let particle of this.particles) {
-            particle.integrate(deltaT, vec);
+            particle.integrate(deltaT);
         }
-        vec.divideScalar(this.w * this.h);
         this.handleCollisions();
 
         for (let x = 0; x <= this.w; x++) {

@@ -98,8 +98,9 @@ class Train {
     }
 
     backgroundEnvelope(x, z) {
-        return Math.max(0, Math.min(1, (this.sceneParams.usePerlinNoiseInHeight ? this.noiseAmp(x, this.sceneParams.width) : this.standardAmp(x, this.sceneParams.width))
-            * this.standardAmp(z, this.sceneParams.height)));
+        let xDecay = Math.max(0, Math.abs(x) > this.sceneParams.width / 2 - 10 ? 1 + this.sceneParams.width / 2 -Math.abs(x) - 10 : 1);
+        let zDecay = Math.max(0, Math.abs(z) > this.sceneParams.height / 2- 10 ? 1 + this.sceneParams.height /2 -Math.abs(z) - 10 : 1);
+        return xDecay * zDecay;
     }
 
     getPosBackground(x, z, y, vec, totalSteepness) {

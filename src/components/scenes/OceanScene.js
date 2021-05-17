@@ -41,12 +41,14 @@ class OceanScene extends THREE.Scene {
             boat: {
                 mass: 1,
                 forceMultiplier: 2,
-                maxVelocity: 10,
-                drag: 0.1,
+                maxVelocity: 20,
+                drag: 0.05,
                 turningSpeed: .75,
+                sailSensitivity: .05,
+                autoSail: false
             },
             wave: {
-                medianWavelength: 10,
+                medianWavelength: 5,
                 width: 200,
                 height: 200,
                 minSize: 40,
@@ -58,10 +60,10 @@ class OceanScene extends THREE.Scene {
                 kappa0: 1,
                 kappaX: 1,
                 kappaY: 1,
-                modelBreaking: false,
-                modelDepth: false,
+                modelBreaking: true,
+                modelDepth: true,
                 steepnessMultiplier: 0.75,
-                numTrains: 1,
+                numTrains: 2,
                 lambda: 1,
                 waveSpeedFactor: 1,
                 holiness: 2,
@@ -118,16 +120,16 @@ class OceanScene extends THREE.Scene {
         this.add(this.sun, this.chunks);
         this.attach(this.boat);
 
-
-
         // Populate GUI
         this.state.gui.add(this.state, 'windSpeed', 0.01, 20);
         this.state.gui.add(this.state, 'windHeading', 0, 2 * Math.PI);
         this.state.gui.add(this.params.boat, 'mass', 0.01, 1);
         this.state.gui.add(this.params.boat, 'forceMultiplier', 1, 100);
         this.state.gui.add(this.params.boat, 'maxVelocity', 0, 20);
-        this.state.gui.add(this.params.boat, 'drag', 0, 1);
+        this.state.gui.add(this.params.boat, 'drag', 0, .1);
         this.state.gui.add(this.params.boat, 'turningSpeed', 0.01, 2);
+        this.state.gui.add(this.params.boat, 'sailSensitivity', 0.01, 0.2);
+        this.state.gui.add(this.params.boat, 'autoSail');
         this.state.gui.add(this.params, 'fog').onChange((showFog) => {
             this.fog.near = showFog ? near : 20000;
             this.fog.far = showFog ? far : 20000;
@@ -142,7 +144,7 @@ class OceanScene extends THREE.Scene {
         wave.add(this.params.wave, 'g', 1, 40);
         wave.add(this.params.wave, 'minSize', 0, 100);
         wave.add(this.params.wave, 'maxSize', 0, 100);
-        wave.add(this.params.wave, 'medianWavelength', 0.1, 100);
+        wave.add(this.params.wave, 'medianWavelength', 0.1, 10);
         wave.add(this.params.wave, 'numTrains', 0, 5, 1);
         wave.add(this.params.wave, 'lambda', 0, 5);
         wave.add(this.params.wave, 'kappaX', 0.01, 1);
@@ -187,10 +189,11 @@ class OceanScene extends THREE.Scene {
         island.add(this.params.chunk.island, 'thresholdMin', 0, 100);
         island.add(this.params.chunk.island, 'thresholdMax', 0, 100);
 
-        this.ah = new ArrowHelper(new Vector3(), new Vector3(0, 3, 0));
-        this.ah2 = new ArrowHelper(new Vector3(), new Vector3(0, 5, 0), 10, 0xff0000);
+        // this.ah = new ArrowHelper(new Vector3(), new Vector3(0, 3, 0));
+        // this.ah2 = new ArrowHelper(new Vector3(), new Vector3(0, 5, 0), 10, 0xff0000);
+        // this.ah3 = new ArrowHelper(new Vector3(), new Vector3(0, 7, 0), 10, 0x00ff00);
 
-        this.add(this.ah, this.ah2);
+        // this.add(this.ah, this.ah2, this.ah3);
     }
 
     addToUpdateList(object) {
@@ -199,8 +202,9 @@ class OceanScene extends THREE.Scene {
 
     update(deltaT) {
         this.state.windDirection.set(Math.cos(this.state.windHeading), 0, Math.sin(this.state.windHeading));
-        this.ah.setDirection(this.state.windDirection);
-        this.ah2.setDirection(new THREE.Vector3(Math.sin(this.boat.rotation.y - Math.PI), 0, Math.cos(this.boat.rotation.y - Math.PI)));
+        // this.ah.setDirection(this.state.windDirection);
+        // this.ah2.setDirection(new THREE.Vector3(Math.sin(this.boat.rotation.y - Math.PI), 0, Math.cos(this.boat.rotation.y - Math.PI)));
+        // this.ah3.setDirection(new THREE.Vector3(Math.sin(this.boat.rotation.y - this.boat.sail.rotation.y + Math.PI), 0, Math.cos(this.boat.rotation.y - this.boat.sail.rotation.y + Math.PI)));
         // Call update for each object in the updateList
         for (const obj of this.state.updateList) {
             obj.update(deltaT);

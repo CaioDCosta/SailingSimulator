@@ -153,13 +153,6 @@ class Water extends THREE.Group {
         params.position.x = -Math.cos(params.baseHeading) * this.params.width / 2;
         params.position.z = -Math.sin(params.baseHeading) * this.params.height / 2;
 
-        const box = new THREE.Box3();
-        box.setFromCenterAndSize(params.position, params.size);
-
-        const helper = new THREE.Box3Helper(box, 0xffff00);
-        this.scene.add(helper);
-
-
         params.baseWavelength = this.params.medianWavelength * (Math.random() * 3 / 2 + .5);
         params.wavelengthWindFactor = 1.3;
         params.steepness = 1;
@@ -181,7 +174,7 @@ class Water extends THREE.Group {
         for (let i = 0; i < this.trains.length; i++) {
             let train = this.trains[i];
             train.translate(x, z)
-            if (Math.abs(train.params.position.x) > this.params.width / 2 || Math.abs(train.params.position.z) > this.params.height / 2) {
+            if (Math.abs(train.params.position.x) > this.params.width / 2|| Math.abs(train.params.position.z) > this.params.height / 2) {
                 this.generateNewTrain(i);
             }
         }

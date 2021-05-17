@@ -43,14 +43,30 @@ controls.maxDistance = 100;
 controls.maxPolarAngle = Math.PI / 2 - .1;
 controls.update();
 
-
-const clock = new Clock();
 let delta = 0;
 const interval = 1 / 30; // Target 60 FPS
 let time = 0;
 
 const scene = new OceanScene(interval, controls, camera);
 
+let sailY = 0;
+function handleSteering(event) {
+    // Ignore keypresses typed into a text box
+    if (event.target.tagName === "INPUT") { return; }
+    if (event.key === 'ArrowLeft') {
+        sailY -= scene.params.boat.sailSensitivity;
+    }
+    else if (event.key === 'ArrowRight') {
+        sailY += scene.params.boat.sailSensitivity;
+    }
+    else if (event.key === 'ArrowUp') {
+        sailY = 0;
+    }
+}
+
+window.addEventListener('keydown', handleSteering);
+
+const clock = new Clock();
 const stats = new Stats();
 document.body.appendChild(stats.domElement);
 
@@ -65,9 +81,12 @@ const onAnimationFrameHandler = (timeStamp) => {
         TWEEN.update(time * 1000);
         stats.begin();
         effect.render(scene, camera);
-
-
         scene.update && scene.update(interval);
+        if (scene.params.boat.autoSail) {
+            sailY = scene.boat.rotation.y - scene.state.windHeading + Math.PI / 2;
+        }
+        sailY = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, sailY));
+        scene.boat.sail.tween.to({ y: sailY }, interval).start(time);
         stats.end();
         stats.update();
         delta %= interval;
